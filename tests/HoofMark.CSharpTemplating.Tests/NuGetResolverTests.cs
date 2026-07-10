@@ -146,7 +146,7 @@ public class NuGetResolverTests
         var act = () => _resolver.Resolve(path, ["SomePackage"], "net10.0");
 
         act.ShouldThrow<NuGetResolutionException>()
-            .WithMessage("*No compatible target*net99.0*");
+            .WithMessage("*Target framework*not found in*Available targets:*net99.0*");
     }
 
     // ── Missing assets file ───────────────────────────────────────────────────

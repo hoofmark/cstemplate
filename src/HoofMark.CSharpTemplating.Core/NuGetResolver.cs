@@ -115,6 +115,11 @@ public sealed class NuGetResolver
         var match = assets.Targets.Keys
             .FirstOrDefault(k => k.StartsWith(targetFramework, StringComparison.OrdinalIgnoreCase));
 
+        if (match == null)
+            throw new NuGetResolutionException(
+                $"Target framework '{targetFramework}' not found in '{assetsFilePath}'. " +
+                $"Available targets: {string.Join(", ", assets.Targets.Keys)}");
+
         return match ?? assets.Targets.Keys.First();
     }
 

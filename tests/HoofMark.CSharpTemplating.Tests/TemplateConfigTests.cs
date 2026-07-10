@@ -75,7 +75,7 @@ public class TemplateConfigTests
 
         var items = config.Get<List<string>>("items");
 
-        items.ShouldBeEquivalentTo(new [] {"a", "b", "c"});
+        items.ShouldBeEquivalentTo(new List<string> {"a", "b", "c"});
     }
 
     [Fact]
@@ -133,7 +133,7 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"a":"1","b":"2","c":"3"}""");
 
-        config.All.Keys.ShouldBeEquivalentTo(new [] {"a", "b", "c"});
+        config.All.Keys.ToList().ShouldBeEquivalentTo(new List<string> {"a", "b", "c"});
     }
 
     // ── Error handling ────────────────────────────────────────────────────────
