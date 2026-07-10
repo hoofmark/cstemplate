@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>14</LangVersion>
+    <AssemblyName>HoofMark.CSharpTemplating.Cli</AssemblyName>
+    <RootNamespace>HoofMark.CSharpTemplating.Cli</RootNamespace>
+
+    <!-- dotnet tool packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>cstemplate</ToolCommandName>
+    <PackageId>HoofMark.CSharpTemplating.Cli</PackageId>
+    <Version>0.1.0</Version>
+    <Description>CLI tool for running HoofMark.CSharpTemplating templates.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HoofMark.CSharpTemplating.Core\HoofMark.CSharpTemplating.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Minimal, fast arg parsing — no heavy framework needed -->
+    <PackageReference Include="System.CommandLine" Version="2.0.3" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,69 @@
+name: Deploy docs to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'docs/docfx/**'
+      - 'docs/publish/index.html'
+      - '.github/workflows/deploy-docs.yml'
+  workflow_dispatch:   # allow manual trigger from the Actions tab
+
+# Allow this workflow to write to GitHub Pages
+permissions:
+  contents: read
+  pages:    write
+  id-token: write
+
+# Only one deployment at a time; cancel any in-progress run on new push
+concurrency:
+  group:              pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Restore solution
+        run: dotnet restore
+
+      - name: Install DocFX
+        run: dotnet tool install --global docfx
+
+      - name: Build DocFX site
+        run: docfx docs/docfx/docfx.json
+        # Outputs to docs/publish/ref/ as configured in docfx.json
+
+      - name: Copy landing page into publish root
+        run: |
+          # index.html is already in docs/publish/ — nothing to copy.
+          # This step is a no-op but makes the intent explicit.
+          echo "docs/publish contents:"
+          ls docs/publish/
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/publish
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

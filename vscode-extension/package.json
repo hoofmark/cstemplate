@@ -1,0 +1,157 @@
+{
+  "name": "cstemplate-vscode",
+  "displayName": "cstemplate",
+  "description": "Run, check, and manage cstemplate C# templates from VS Code.",
+  "version": "0.1.0",
+  "publisher": "HoofMark",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Other"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hoofmark/cstemplate"
+  },
+
+  "activationEvents": [],
+
+  "main": "./out/extension.js",
+
+  "contributes": {
+
+    "commands": [
+      {
+        "command": "cstemplate.runTemplate",
+        "title": "Run Template",
+        "category": "cstemplate",
+        "icon": "$(play)"
+      },
+      {
+        "command": "cstemplate.checkTemplate",
+        "title": "Check Template (Compile Only)",
+        "category": "cstemplate",
+        "icon": "$(check)"
+      },
+      {
+        "command": "cstemplate.runAllTemplates",
+        "title": "Run All Templates in Workspace",
+        "category": "cstemplate",
+        "icon": "$(run-all)"
+      },
+      {
+        "command": "cstemplate.revealOutput",
+        "title": "Reveal Generated Output Folder",
+        "category": "cstemplate",
+        "icon": "$(folder-opened)"
+      }
+    ],
+
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "cstemplate.runTemplate",
+          "when": "cstemplate.isTemplateFile",
+          "group": "cstemplate@1"
+        },
+        {
+          "command": "cstemplate.checkTemplate",
+          "when": "cstemplate.isTemplateFile",
+          "group": "cstemplate@2"
+        },
+        {
+          "command": "cstemplate.revealOutput",
+          "when": "cstemplate.isTemplateFile",
+          "group": "cstemplate@3"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "cstemplate.runTemplate",
+          "when": "cstemplate.isTemplateFile",
+          "group": "cstemplate@1"
+        },
+        {
+          "command": "cstemplate.checkTemplate",
+          "when": "cstemplate.isTemplateFile",
+          "group": "cstemplate@2"
+        }
+      ],
+      "editor/title": [
+        {
+          "command": "cstemplate.runTemplate",
+          "when": "cstemplate.isTemplateFile",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "cstemplate.runTemplate",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "cstemplate.checkTemplate",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "cstemplate.runAllTemplates",
+          "when": "workspaceFolderCount > 0"
+        },
+        {
+          "command": "cstemplate.revealOutput",
+          "when": "editorIsOpen"
+        }
+      ]
+    },
+
+    "configuration": {
+      "title": "cstemplate",
+      "properties": {
+        "cstemplate.cliPath": {
+          "type": "string",
+          "default": "cstemplate",
+          "description": "Path to the cstemplate CLI executable. Defaults to 'cstemplate', which resolves via PATH after installing with 'dotnet tool install --global HoofMark.CSharpTemplating.Cli'. Override with a full path if you installed the tool to a custom location with --tool-path, or if you want to use a local development build."
+        },
+        "cstemplate.outputRoot": {
+          "type": "string",
+          "default": "",
+          "description": "Fallback output root for generated files. Only used when no cstemplate.config.json is found in or above the template's directory. If both this setting and a config file are absent, files are written to a 'generated/' folder next to each template. Leave empty if you are using cstemplate.config.json to manage output locations."
+        },
+        "cstemplate.checkOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Run 'cstemplate check' on save for template files, surfacing compile errors as diagnostics."
+        },
+        "cstemplate.showOutputOnRun": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show the cstemplate output panel when a template is run."
+        },
+        "cstemplate.templateFilePattern": {
+          "type": "string",
+          "default": "**/*.template.cs",
+          "description": "Glob pattern used to identify template files."
+        }
+      }
+    },
+
+    "keybindings": [
+      {
+        "command": "cstemplate.runTemplate",
+        "key": "ctrl+shift+t",
+        "mac": "cmd+shift+t",
+        "when": "cstemplate.isTemplateFile"
+      }
+    ]
+  },
+
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

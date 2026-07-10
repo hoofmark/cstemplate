@@ -1,0 +1,6 @@
+- name: Quickstart
+  href: quickstart.md
+- name: CLI Reference
+  href: cli.md
+- name: Workspace Configuration
+  href: workspace-config.md

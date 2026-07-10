@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HoofMark.CSharpTemplating.Abstractions\HoofMark.CSharpTemplating.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>HoofMark.CSharpTemplating.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Roslyn compiler services -->
+    <!--PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.9.2" /-->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <!-- For resolving runtime reference assemblies to pass to Roslyn -->
+    <!--PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.4.5" /-->
+    <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.4" />
+  </ItemGroup>
+
+</Project>
