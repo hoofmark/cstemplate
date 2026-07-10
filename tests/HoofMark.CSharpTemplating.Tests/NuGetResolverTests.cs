@@ -72,8 +72,10 @@ public class NuGetResolverTests
 
         var act = () => _resolver.Resolve(path, ["SomePackage"]);
 
-        act.Should().Throw<NuGetResolutionException>()
+        act.ShouldThrow<NuGetResolutionException>()
             .WithMessage("*Unsupported*version*99*");
+        // act.Should().Throw<NuGetResolutionException>()
+        //     .WithMessage("*Unsupported*version*99*");
     }
 
     [Fact]
@@ -95,7 +97,7 @@ public class NuGetResolverTests
         // Empty filter returns empty without throwing
         var act = () => _resolver.Resolve(path, []);
 
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     // ── TFM fallback chain ────────────────────────────────────────────
@@ -106,11 +108,12 @@ public class NuGetResolverTests
         using var dir = new TempDirectory();
         var path = dir.File("project.assets.json");
         await File.WriteAllTextAsync(path,
-            "{ \"version\": 3, \"targets\": { \"net10.0\": {} }, \"libraries\": {}, \"packageFolders\": {} }");
+            "{ \"version\": 3, \"targets\": { \"net10.0\": {} }, \"libraries\": {}, \"packageFolders\": {} }",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         var act = () => _resolver.Resolve(path, [], "net10.0");
 
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -121,11 +124,12 @@ public class NuGetResolverTests
         using var dir = new TempDirectory();
         var path = dir.File("project.assets.json");
         await File.WriteAllTextAsync(path,
-            "{ \"version\": 3, \"targets\": { \"net8.0\": {} }, \"libraries\": {}, \"packageFolders\": {} }");
+            "{ \"version\": 3, \"targets\": { \"net8.0\": {} }, \"libraries\": {}, \"packageFolders\": {} }",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         var act = () => _resolver.Resolve(path, [], "net10.0");
 
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -136,11 +140,12 @@ public class NuGetResolverTests
         using var dir = new TempDirectory();
         var path = dir.File("project.assets.json");
         await File.WriteAllTextAsync(path,
-            "{ \"version\": 3, \"targets\": { \"net99.0\": {} }, \"libraries\": {}, \"packageFolders\": {} }");
+            "{ \"version\": 3, \"targets\": { \"net99.0\": {} }, \"libraries\": {}, \"packageFolders\": {} }",
+            cancellationToken: TestContext.Current.CancellationToken);
 
         var act = () => _resolver.Resolve(path, ["SomePackage"], "net10.0");
 
-        act.Should().Throw<NuGetResolutionException>()
+        act.ShouldThrow<NuGetResolutionException>()
             .WithMessage("*No compatible target*net99.0*");
     }
 
@@ -151,7 +156,7 @@ public class NuGetResolverTests
     {
         var act = () => _resolver.Resolve("/nonexistent/project.assets.json", ["SomePackage"]);
 
-        act.Should().Throw<NuGetResolutionException>()
+        act.ShouldThrow<NuGetResolutionException>()
             .WithMessage("*dotnet restore*");
     }
 
@@ -169,7 +174,7 @@ public class NuGetResolverTests
 
         var result = _resolver.Resolve(assetsFile, []);
 
-        result.ManagedAssemblyPaths.Should().BeEmpty();
+        result.ManagedAssemblyPaths.ShouldBeEmpty();
     }
 
     // ── Basic resolution ──────────────────────────────────────────────────────
@@ -192,9 +197,9 @@ public class NuGetResolverTests
 
         var result = _resolver.Resolve(assetsFile, ["SomePackage"]);
 
-        result.ManagedAssemblyPaths.Should().ContainSingle();
-        result.ManagedAssemblyPaths[0].Should().EndWith("Some.dll");
-        File.Exists(result.ManagedAssemblyPaths[0]).Should().BeTrue();
+        result.ManagedAssemblyPaths.ShouldContainSingle();
+        result.ManagedAssemblyPaths[0].ShouldEndWith("Some.dll");
+        File.Exists(result.ManagedAssemblyPaths[0]).ShouldBeTrue();
     }
 
     [Fact]
@@ -217,8 +222,8 @@ public class NuGetResolverTests
 
         var result = _resolver.Resolve(assetsFile, ["Included"]);
 
-        result.ManagedAssemblyPaths.Should().ContainSingle();
-        result.ManagedAssemblyPaths[0].Should().EndWith("Included.dll");
+        result.ManagedAssemblyPaths.ShouldContainSingle();
+        result.ManagedAssemblyPaths[0].ShouldEndWith("Included.dll");
     }
 
     // ── Transitive dependencies ───────────────────────────────────────────────
@@ -252,9 +257,9 @@ public class NuGetResolverTests
 
         var result = _resolver.Resolve(assetsFile, ["Root"]);
 
-        result.ManagedAssemblyPaths.Should().HaveCount(2);
-        result.ManagedAssemblyPaths.Should().Contain(p => p.EndsWith("Root.dll"));
-        result.ManagedAssemblyPaths.Should().Contain(p => p.EndsWith("Transitive.dll"));
+        result.ManagedAssemblyPaths.ShouldHaveCount(2);
+        result.ManagedAssemblyPaths.ShouldContain(p => p.EndsWith("Root.dll"));
+        result.ManagedAssemblyPaths.ShouldContain(p => p.EndsWith("Transitive.dll"));
     }
 
     // ── Placeholder assemblies ────────────────────────────────────────────────
@@ -272,7 +277,7 @@ public class NuGetResolverTests
 
         var result = _resolver.Resolve(assetsFile, ["Meta"]);
 
-        result.ManagedAssemblyPaths.Should().BeEmpty();
+        result.ManagedAssemblyPaths.ShouldBeEmpty();
     }
 
     // ── Case insensitivity ────────────────────────────────────────────────────
@@ -294,7 +299,7 @@ public class NuGetResolverTests
         // Filter uses different casing from the assets file
         var result = _resolver.Resolve(assetsFile, ["mypackage"]);
 
-        result.ManagedAssemblyPaths.Should().ContainSingle();
+        result.ManagedAssemblyPaths.ShouldContainSingle();
     }
 
     // ── Missing assets target ─────────────────────────────────────────────────
@@ -308,6 +313,6 @@ public class NuGetResolverTests
 
         var act = () => _resolver.Resolve(path, ["SomePackage"]);
 
-        act.Should().Throw<NuGetResolutionException>();
+        act.ShouldThrow<NuGetResolutionException>();
     }
 }

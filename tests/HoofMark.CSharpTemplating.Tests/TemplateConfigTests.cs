@@ -1,4 +1,3 @@
-using FluentAssertions;
 using HoofMark.CSharpTemplating.Core;
 using HoofMark.CSharpTemplating.Tests.Helpers;
 
@@ -17,7 +16,7 @@ public class TemplateConfigTests
 
         var config = TemplateConfig.LoadFrom(dir.File("T.template.cs"));
 
-        config.Get("key").Should().Be("value");
+        config.Get("key").ShouldBe("value");
     }
 
     [Fact]
@@ -28,7 +27,7 @@ public class TemplateConfigTests
 
         var config = TemplateConfig.LoadFrom(dir.File("T.template.cs"));
 
-        config.All.Should().BeEmpty();
+        config.All.ShouldBeEmpty();
     }
 
     // ── Get(string) ───────────────────────────────────────────────────────────
@@ -38,7 +37,7 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"name":"Alice"}""");
 
-        config.Get("name").Should().Be("Alice");
+        config.Get("name").ShouldBe("Alice");
     }
 
     [Fact]
@@ -46,7 +45,7 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"name":"Alice"}""");
 
-        config.Get("nonexistent").Should().BeNull();
+        config.Get("nonexistent").ShouldBeNull();
     }
 
     [Fact]
@@ -54,9 +53,9 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"Namespace":"MyApp"}""");
 
-        config.Get("namespace").Should().Be("MyApp");
-        config.Get("NAMESPACE").Should().Be("MyApp");
-        config.Get("Namespace").Should().Be("MyApp");
+        config.Get("namespace").ShouldBe("MyApp");
+        config.Get("NAMESPACE").ShouldBe("MyApp");
+        config.Get("Namespace").ShouldBe("MyApp");
     }
 
     [Fact]
@@ -64,7 +63,7 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"count":42}""");
 
-        config.Get("count").Should().Be("42");
+        config.Get("count").ShouldBe("42");
     }
 
     // ── Get<T>() ──────────────────────────────────────────────────────────────
@@ -76,7 +75,7 @@ public class TemplateConfigTests
 
         var items = config.Get<List<string>>("items");
 
-        items.Should().BeEquivalentTo(["a", "b", "c"]);
+        items.ShouldBeEquivalentTo(new [] {"a", "b", "c"});
     }
 
     [Fact]
@@ -90,9 +89,9 @@ public class TemplateConfigTests
 
         var prop = config.Get<PropertyDef>("property");
 
-        prop.Should().NotBeNull();
-        prop!.Name.Should().Be("Id");
-        prop.Type.Should().Be("int");
+        prop.ShouldNotBeNull();
+        prop!.Name.ShouldBe("Id");
+        prop.Type.ShouldBe("int");
     }
 
     [Fact]
@@ -100,7 +99,7 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"other":"value"}""");
 
-        config.Get<List<string>>("nonexistent").Should().BeNull();
+        config.Get<List<string>>("nonexistent").ShouldBeNull();
     }
 
     // ── TryGet ────────────────────────────────────────────────────────────────
@@ -112,8 +111,8 @@ public class TemplateConfigTests
 
         var found = config.TryGet("env", out var value);
 
-        found.Should().BeTrue();
-        value.Should().Be("production");
+        found.ShouldBeTrue();
+        value.ShouldBe("production");
     }
 
     [Fact]
@@ -123,8 +122,8 @@ public class TemplateConfigTests
 
         var found = config.TryGet("missing", out var value);
 
-        found.Should().BeFalse();
-        value.Should().BeNull();
+        found.ShouldBeFalse();
+        value.ShouldBeNull();
     }
 
     // ── All ───────────────────────────────────────────────────────────────────
@@ -134,7 +133,7 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Parse("""{"a":"1","b":"2","c":"3"}""");
 
-        config.All.Keys.Should().BeEquivalentTo(["a", "b", "c"]);
+        config.All.Keys.ShouldBeEquivalentTo(new [] {"a", "b", "c"});
     }
 
     // ── Error handling ────────────────────────────────────────────────────────
@@ -144,7 +143,7 @@ public class TemplateConfigTests
     {
         var act = () => TemplateConfig.Parse("{ not valid json }");
 
-        act.Should().Throw<TemplateConfigException>();
+        act.ShouldThrow<TemplateConfigException>();
     }
 
     [Fact]
@@ -152,7 +151,7 @@ public class TemplateConfigTests
     {
         var act = () => TemplateConfig.Parse("""["not","an","object"]""");
 
-        act.Should().Throw<TemplateConfigException>()
+        act.ShouldThrow<TemplateConfigException>()
             .WithMessage("*object*");
     }
 
@@ -163,7 +162,7 @@ public class TemplateConfigTests
     {
         var result = TemplateConfig.GetConfigPath(@"C:\templates\MyTemplate.template.cs");
 
-        result.Should().Be(@"C:\templates\MyTemplate.json");
+        result.ShouldBe(@"C:\templates\MyTemplate.json");
     }
 
     [Fact]
@@ -171,7 +170,7 @@ public class TemplateConfigTests
     {
         var result = TemplateConfig.GetConfigPath(@"C:\templates\MyTemplate.cs");
 
-        result.Should().Be(@"C:\templates\MyTemplate.json");
+        result.ShouldBe(@"C:\templates\MyTemplate.json");
     }
 
     [Fact]
@@ -179,7 +178,7 @@ public class TemplateConfigTests
     {
         var result = TemplateConfig.GetConfigPath(@"C:\templates\MyTemplate.TEMPLATE.CS");
 
-        result.Should().Be(@"C:\templates\MyTemplate.json");
+        result.ShouldBe(@"C:\templates\MyTemplate.json");
     }
 
     // ── LoadFrom (compound extension) ─────────────────────────────────────────
@@ -193,7 +192,7 @@ public class TemplateConfigTests
 
         var config = TemplateConfig.LoadFrom(dir.File("T.template.cs"));
 
-        config.Get("key").Should().Be("value");
+        config.Get("key").ShouldBe("value");
     }
 
     [Fact]
@@ -201,10 +200,10 @@ public class TemplateConfigTests
     {
         var config = TemplateConfig.Empty;
 
-        config.Get("any").Should().BeNull();
-        config.Get<List<string>>("any").Should().BeNull();
-        config.TryGet("any", out _).Should().BeFalse();
-        config.All.Should().BeEmpty();
+        config.Get("any").ShouldBeNull();
+        config.Get<List<string>>("any").ShouldBeNull();
+        config.TryGet("any", out _).ShouldBeFalse();
+        config.All.ShouldBeEmpty();
     }
 
     // ── Helper type for deserialisation test ──────────────────────────────────

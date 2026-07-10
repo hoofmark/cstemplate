@@ -1,4 +1,3 @@
-using FluentAssertions;
 using HoofMark.CSharpTemplating.Core;
 using HoofMark.CSharpTemplating.Tests.Helpers;
 
@@ -49,8 +48,8 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.FileCount.Should().Be(1);
-        (await dir.ReadAsync("output.txt")).Should().Be("hello from template");
+        result.FileCount.ShouldBe(1);
+        (await dir.ReadAsync("output.txt")).ShouldBe("hello from template");
     }
 
     [Fact]
@@ -61,9 +60,9 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.FileCount.Should().Be(2);
-        (await dir.ReadAsync("a.txt")).Should().Be("file-a");
-        (await dir.ReadAsync("sub/b.txt")).Should().Be("file-b");
+        result.FileCount.ShouldBe(2);
+        (await dir.ReadAsync("a.txt")).ShouldBe("file-a");
+        (await dir.ReadAsync("sub/b.txt")).ShouldBe("file-b");
     }
 
     [Fact]
@@ -74,7 +73,7 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.TemplateName.Should().Be("T");
+        result.TemplateName.ShouldBe("T");
     }
 
     [Fact]
@@ -85,7 +84,9 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.GeneratedFiles.Should().AllSatisfy(p => Path.IsPathRooted(p).Should().BeTrue());
+        // result.GeneratedFiles.ShouldAllSatisfy(p => Path.IsPathRooted(p).ShouldBeTrue());
+        result.GeneratedFiles.ToList().ForEach(p => Path.IsPathRooted(p).ShouldBeTrue());
+        result.GeneratedFiles.ShouldAllBe(p => Path.IsPathRooted(p));
     }
 
     // ── Config loading ────────────────────────────────────────────────────────
@@ -99,7 +100,7 @@ public class TemplateRunnerTests
 
         await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("output.txt")).Should().Be("from-config");
+        (await dir.ReadAsync("output.txt")).ShouldBe("from-config");
     }
 
     [Fact]
@@ -111,7 +112,7 @@ public class TemplateRunnerTests
 
         await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("output.txt")).Should().Be("missing");
+        (await dir.ReadAsync("output.txt")).ShouldBe("missing");
     }
 
     [Fact]
@@ -128,7 +129,7 @@ public class TemplateRunnerTests
             configOverridePath: dir.File("override.json"),
             cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("output.txt")).Should().Be("overridden");
+        (await dir.ReadAsync("output.txt")).ShouldBe("overridden");
     }
 
     [Fact]
@@ -140,10 +141,10 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.FileCount.Should().Be(3);
-        dir.Exists("x.txt").Should().BeTrue();
-        dir.Exists("y.txt").Should().BeTrue();
-        dir.Exists("z.txt").Should().BeTrue();
+        result.FileCount.ShouldBe(3);
+        dir.Exists("x.txt").ShouldBeTrue();
+        dir.Exists("y.txt").ShouldBeTrue();
+        dir.Exists("z.txt").ShouldBeTrue();
     }
 
     // ── Output root ───────────────────────────────────────────────────────────
@@ -156,8 +157,8 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), cancellationToken: TestContext.Current.CancellationToken);
 
-        result.OutputRoot.Should().EndWith("generated");
-        File.Exists(Path.Combine(result.OutputRoot, "output.txt")).Should().BeTrue();
+        result.OutputRoot.ShouldEndWith("generated");
+        File.Exists(Path.Combine(result.OutputRoot, "output.txt")).ShouldBeTrue();
     }
 
     [Fact]
@@ -169,8 +170,8 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: outDir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.OutputRoot.Should().Be(outDir.Path);
-        File.Exists(Path.Combine(outDir.Path, "output.txt")).Should().BeTrue();
+        result.OutputRoot.ShouldBe(outDir.Path);
+        File.Exists(Path.Combine(outDir.Path, "output.txt")).ShouldBeTrue();
     }
 
     // ── IOutputWriter ─────────────────────────────────────────────────────────
@@ -186,9 +187,9 @@ public class TemplateRunnerTests
         var content = await dir.ReadAsync("output.txt");
         var lines = content.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        lines[0].Should().Be("line1");
-        lines[1].Should().Be("    line2");   // indented
-        lines[2].Should().Be("line3");       // dedented back
+        lines[0].ShouldBe("line1");
+        lines[1].ShouldBe("    line2");   // indented
+        lines[2].ShouldBe("line3");       // dedented back
     }
 
     [Fact]
@@ -200,10 +201,10 @@ public class TemplateRunnerTests
         await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
         var content = await dir.ReadAsync("Class.cs");
-        content.Should().Contain("public class Foo");
-        content.Should().Contain("{");
-        content.Should().Contain("    public int Id { get; set; }");
-        content.Should().Contain("}");
+        content.ShouldContain("public class Foo");
+        content.ShouldContain("{");
+        content.ShouldContain("    public int Id { get; set; }");
+        content.ShouldContain("}");
     }
 
     // ── Error cases ───────────────────────────────────────────────────────────
@@ -216,7 +217,7 @@ public class TemplateRunnerTests
 
         var act = () => _runner.RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path);
 
-        await act.Should().ThrowAsync<TemplateCompilationException>();
+        await act.ShouldThrowAsync<TemplateCompilationException>();
     }
 
     [Fact]
@@ -228,9 +229,9 @@ public class TemplateRunnerTests
         var act = () => _runner.RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path);
 
         var ex = await Assert.ThrowsAsync<TemplateExecutionException>(act);
-        ex.InnerException.Should().BeOfType<InvalidOperationException>();
-        ex.InnerException!.Message.Should().Contain("template-error");
-        ex.TemplateName.Should().Be("T");
+        ex.InnerException.ShouldBeOfType<InvalidOperationException>();
+        ex.InnerException!.Message.ShouldContain("template-error");
+        ex.TemplateName.ShouldBe("T");
     }
 
     [Fact]
@@ -241,7 +242,7 @@ public class TemplateRunnerTests
 
         var act = () => _runner.RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path);
 
-        await act.Should().ThrowAsync<TemplateExecutionException>();
+        await act.ShouldThrowAsync<TemplateExecutionException>();
     }
 
     [Fact]
@@ -249,7 +250,7 @@ public class TemplateRunnerTests
     {
         var act = () => _runner.RunAsync("/nonexistent/T.cst");
 
-        await act.Should().ThrowAsync<FileNotFoundException>();
+        await act.ShouldThrowAsync<FileNotFoundException>();
     }
 
     // ── Cancellation ──────────────────────────────────────────────────────────
@@ -265,7 +266,7 @@ public class TemplateRunnerTests
 
         var act = () => _runner.RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: cts.Token);
 
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        await act.ShouldThrowAsync<OperationCanceledException>();
     }
 
     // ── ReadFile ──────────────────────────────────────────────────────────────
@@ -279,7 +280,7 @@ public class TemplateRunnerTests
 
         await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("output.txt")).Should().Be("model-content");
+        (await dir.ReadAsync("output.txt")).ShouldBe("model-content");
     }
 
     [Fact]
@@ -299,7 +300,7 @@ public class TemplateRunnerTests
 
         await runner.RunAsync(templateDir.File("T.template.cs"), outputRoot: outputDir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        (await outputDir.ReadAsync("output.txt")).Should().Be("from-project-root");
+        (await outputDir.ReadAsync("output.txt")).ShouldBe("from-project-root");
     }
 
     [Fact]
@@ -311,8 +312,9 @@ public class TemplateRunnerTests
 
         var act = () => RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path);
 
-        await act.Should().ThrowAsync<TemplateExecutionException>()
-            .WithInnerException<TemplateExecutionException, FileNotFoundException>();
+        var ex = await act.ShouldThrowAsync<TemplateExecutionException>();
+        ex.InnerException?.GetType().ShouldBe(typeof(FileNotFoundException));
+            // .WithInnerException<TemplateExecutionException, FileNotFoundException>();
     }
 
     // ── ToString / display ────────────────────────────────────────────────────
@@ -325,7 +327,7 @@ public class TemplateRunnerTests
 
         var result = await RunAsync(dir.File("T.template.cs"), outputRoot: dir.Path, cancellationToken: TestContext.Current.CancellationToken);
 
-        result.ToString().Should().Contain("T");
-        result.ToString().Should().Contain("1");
+        result.ToString().ShouldContain("T");
+        result.ToString().ShouldContain("1");
     }
 }

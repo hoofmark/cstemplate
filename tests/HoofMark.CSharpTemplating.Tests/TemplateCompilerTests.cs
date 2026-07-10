@@ -1,4 +1,3 @@
-using FluentAssertions;
 using HoofMark.CSharpTemplating.Core;
 using HoofMark.CSharpTemplating.Tests.Helpers;
 
@@ -34,8 +33,8 @@ public class TemplateCompilerTests
     {
         using var compiled = CompileSource(TemplateSources.SingleFile);
 
-        compiled.Should().NotBeNull();
-        compiled.TemplateName.Should().Be("T");
+        compiled.ShouldNotBeNull();
+        compiled.TemplateName.ShouldBe("T");
     }
 
     [Fact]
@@ -47,7 +46,7 @@ public class TemplateCompilerTests
 
         using var compiled = _compiler.Compile(path);
 
-        compiled.TemplateName.Should().Be("T");
+        compiled.TemplateName.ShouldBe("T");
     }
 
     [Fact]
@@ -58,7 +57,7 @@ public class TemplateCompilerTests
 
         // Calling Run after disposal should throw ObjectDisposedException
         var act = () => compiled.Run(null!);
-        act.Should().Throw<ObjectDisposedException>();
+        act.ShouldThrow<ObjectDisposedException>();
     }
 
     // ── Compile errors ────────────────────────────────────────────────────────
@@ -68,22 +67,22 @@ public class TemplateCompilerTests
     {
         var act = () => _compiler.CompileSource(TemplateSources.CompileError);
 
-        act.Should().Throw<TemplateCompilationException>()
-            .Which.Diagnostics.Should().NotBeEmpty();
+        var ex = act.ShouldThrow<TemplateCompilationException>();
+        ex.Diagnostics.ShouldNotBeEmpty();
     }
 
     [Fact]
     public void Compile_CompileError_DiagnosticsHaveLineNumbers()
     {
-        var ex = Assert.Throws<TemplateCompilationException>(
+        var ex = Should.Throw<TemplateCompilationException>(
             () => _compiler.CompileSource(TemplateSources.CompileError));
 
-        ex.Diagnostics.Should().AllSatisfy(d =>
-        {
-            d.Line.Should().BeGreaterThan(0);
-            d.Column.Should().BeGreaterThan(0);
-            d.Message.Should().NotBeNullOrWhiteSpace();
-        });
+        ex.Diagnostics.ToList().ForEach(x => x.ShouldSatisfy(
+        [
+            d => d.Line.ShouldBeGreaterThan(0),
+            d => d.Column.ShouldBeGreaterThan(0),
+            d => d.Message.ShouldNotBeNullOrWhiteSpace()
+        ]));
     }
 
     [Fact]
@@ -91,7 +90,7 @@ public class TemplateCompilerTests
     {
         var act = () => _compiler.CompileSource(TemplateSources.SyntaxError);
 
-        act.Should().Throw<TemplateCompilationException>();
+        act.ShouldThrow<TemplateCompilationException>();
     }
 
     // ── ITemplate discovery ───────────────────────────────────────────────────
@@ -101,7 +100,7 @@ public class TemplateCompilerTests
     {
         var act = () => _compiler.CompileSource(TemplateSources.NoITemplate);
 
-        act.Should().Throw<TemplateCompilationException>()
+        act.ShouldThrow<TemplateCompilationException>()
             .WithMessage("*ITemplate*");
     }
 
@@ -110,9 +109,9 @@ public class TemplateCompilerTests
     {
         var act = () => _compiler.CompileSource(TemplateSources.MultipleITemplates);
 
-        act.Should().Throw<TemplateCompilationException>()
-            .WithMessage("*T1*")
-            .And.Message.Should().Contain("T2");
+        act.ShouldThrow<TemplateCompilationException>()
+            .WithMessage("*T1*T2*");
+            // .And.Message.ShouldContain("T2");
     }
 
     // ── File not found ────────────────────────────────────────────────────────
@@ -122,7 +121,7 @@ public class TemplateCompilerTests
     {
         var act = () => _compiler.Compile("/nonexistent/path/T.cst");
 
-        act.Should().Throw<FileNotFoundException>();
+        act.ShouldThrow<FileNotFoundException>();
     }
 
     // ── Additional references ─────────────────────────────────────────────────
@@ -136,7 +135,7 @@ public class TemplateCompilerTests
 
         // Should compile without error — we're just checking no exception is thrown
         var act = () => compiler.CompileSource(TemplateSources.SingleFile);
-        act.Should().NotThrow();
+        act.ShouldNotThrow();
     }
 
     [Fact]
@@ -145,6 +144,6 @@ public class TemplateCompilerTests
         var compiler = new TemplateCompiler(additionalReferencePaths: ["/nonexistent/lib.dll"]);
 
         var act = () => compiler.CompileSource(TemplateSources.SingleFile);
-        act.Should().Throw<FileNotFoundException>();
+        act.ShouldThrow<FileNotFoundException>();
     }
 }

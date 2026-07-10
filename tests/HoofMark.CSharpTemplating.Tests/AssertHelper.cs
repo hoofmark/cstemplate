@@ -36,4 +36,19 @@ internal static class AssertHelper
                 $"Template compilation failed unexpectedly:\n{ex}", ex);
         }
     }
+
+    public static bool WithMessage(this Exception ex, string expectedMsg)
+    {
+        //  Allow for wildcard characters
+        var msgComponents = expectedMsg.Split('*');
+        var matched = msgComponents.All(x => ex.Message.Contains(x));
+        matched.ShouldBeTrue();
+        return matched;
+    }
+
+    public static void ShouldContainSingle<T>(this IEnumerable<T> data)
+    => data.Count().ShouldBe(1);
+
+    public static void ShouldHaveCount<T>(this IEnumerable<T> data, int expectedCount)
+    => data.Count().ShouldBe(expectedCount);
 }

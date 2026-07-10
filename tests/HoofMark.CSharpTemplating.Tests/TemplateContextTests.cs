@@ -1,4 +1,3 @@
-using FluentAssertions;
 using HoofMark.CSharpTemplating.Core;
 using HoofMark.CSharpTemplating.Tests.Helpers;
 
@@ -23,7 +22,7 @@ public class TemplateContextTests
         ctx.WriteFile("output.txt", "hello");
         await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("output.txt")).Should().Be("hello");
+        (await dir.ReadAsync("output.txt")).ShouldBe("hello");
     }
 
     [Fact]
@@ -35,7 +34,7 @@ public class TemplateContextTests
         ctx.WriteFile("a/b/c/output.txt", "nested");
         await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("a/b/c/output.txt")).Should().Be("nested");
+        (await dir.ReadAsync("a/b/c/output.txt")).ShouldBe("nested");
     }
 
     [Fact]
@@ -49,9 +48,9 @@ public class TemplateContextTests
         ctx.WriteFile("sub/c.txt", "ccc");
         await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        (await dir.ReadAsync("a.txt")).Should().Be("aaa");
-        (await dir.ReadAsync("b.txt")).Should().Be("bbb");
-        (await dir.ReadAsync("sub/c.txt")).Should().Be("ccc");
+        (await dir.ReadAsync("a.txt")).ShouldBe("aaa");
+        (await dir.ReadAsync("b.txt")).ShouldBe("bbb");
+        (await dir.ReadAsync("sub/c.txt")).ShouldBe("ccc");
     }
 
     [Fact]
@@ -63,7 +62,7 @@ public class TemplateContextTests
         ctx.WriteFile("sub/output.txt", "content");
         await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        dir.Exists("sub/output.txt").Should().BeTrue();
+        dir.Exists("sub/output.txt").ShouldBeTrue();
     }
 
     // ── WriteFile(path, Action<IOutputWriter>) ────────────────────────────────
@@ -81,8 +80,8 @@ public class TemplateContextTests
         await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         var content = await dir.ReadAsync("output.txt");
-        content.Should().Contain("line1");
-        content.Should().Contain("line2");
+        content.ShouldContain("line1");
+        content.ShouldContain("line2");
     }
 
     // ── FlushAsync return value ───────────────────────────────────────────────
@@ -98,10 +97,10 @@ public class TemplateContextTests
 
         var written = await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        written.Should().HaveCount(2);
-        written.Should().AllSatisfy(p => Path.IsPathRooted(p).Should().BeTrue());
-        written.Should().Contain(p => p.EndsWith("a.txt"));
-        written.Should().Contain(p => p.EndsWith("b.txt"));
+        written.ShouldHaveCount(2);
+        written.ToList().ForEach(x => x.ShouldSatisfy([p => Path.IsPathRooted(p).ShouldBeTrue()]));
+        written.ShouldContain(p => p.EndsWith("a.txt"));
+        written.ShouldContain(p => p.EndsWith("b.txt"));
     }
 
     [Fact]
@@ -112,7 +111,7 @@ public class TemplateContextTests
 
         var written = await ctx.FlushAsync(cancellationToken: TestContext.Current.CancellationToken);
 
-        written.Should().BeEmpty();
+        written.ShouldBeEmpty();
     }
 
     // ── Path security ─────────────────────────────────────────────────────────
@@ -125,7 +124,7 @@ public class TemplateContextTests
 
         var act = () => ctx.WriteFile("../../etc/passwd", "pwned");
 
-        act.Should().Throw<TemplateExecutionException>()
+        act.ShouldThrow<TemplateExecutionException>()
             .WithMessage("*'..'*");
     }
 
@@ -137,7 +136,7 @@ public class TemplateContextTests
 
         var act = () => ctx.WriteFile("/etc/passwd", "pwned");
 
-        act.Should().Throw<TemplateExecutionException>()
+        act.ShouldThrow<TemplateExecutionException>()
             .WithMessage("*absolute*");
     }
 
@@ -149,7 +148,7 @@ public class TemplateContextTests
 
         var act = () => ctx.WriteFile(null!, "content");
 
-        act.Should().Throw<ArgumentException>();
+        act.ShouldThrow<ArgumentException>();
     }
 
     [Fact]
@@ -160,7 +159,7 @@ public class TemplateContextTests
 
         var act = () => ctx.WriteFile("   ", "content");
 
-        act.Should().Throw<ArgumentException>();
+        act.ShouldThrow<ArgumentException>();
     }
 
     // ── ReadFile ──────────────────────────────────────────────────────────────
@@ -174,7 +173,7 @@ public class TemplateContextTests
 
         var content = ctx.ReadFile(dir.File("model.xml"));
 
-        content.Should().Be("<root/>");
+        content.ShouldBe("<root/>");
     }
 
     [Fact]
@@ -188,7 +187,7 @@ public class TemplateContextTests
 
         var content = ctx.ReadFile("model.xml");
 
-        content.Should().Be("<from-template-dir/>");
+        content.ShouldBe("<from-template-dir/>");
     }
 
     [Fact]
@@ -203,7 +202,7 @@ public class TemplateContextTests
 
         var content = ctx.ReadFile("shared/model.xml");
 
-        content.Should().Be("<from-project-root/>");
+        content.ShouldBe("<from-project-root/>");
     }
 
     [Fact]
@@ -217,7 +216,7 @@ public class TemplateContextTests
 
         var content = ctx.ReadFile("generated.json");
 
-        content.Should().Be("{}");
+        content.ShouldBe("{}");
     }
 
     [Fact]
@@ -233,7 +232,7 @@ public class TemplateContextTests
 
         var ctx = MakeContext(outputDir.Path, templateDir: templateDir.Path, projectRoot: projectDir.Path);
 
-        ctx.ReadFile("model.xml").Should().Be("<template-dir/>");
+        ctx.ReadFile("model.xml").ShouldBe("<template-dir/>");
     }
 
     [Fact]
@@ -244,7 +243,7 @@ public class TemplateContextTests
 
         var act = () => ctx.ReadFile("nonexistent.xml");
 
-        act.Should().Throw<FileNotFoundException>()
+        act.ShouldThrow<FileNotFoundException>()
             .WithMessage("*nonexistent.xml*");
     }
 
@@ -260,9 +259,9 @@ public class TemplateContextTests
         var ex = Assert.Throws<FileNotFoundException>(() => ctx.ReadFile("missing.xml"));
 
         // Error should mention all three search locations
-        ex.Message.Should().Contain(templateDir.Path);
-        ex.Message.Should().Contain(projectDir.Path);
-        ex.Message.Should().Contain(outputDir.Path);
+        ex.Message.ShouldContain(templateDir.Path);
+        ex.Message.ShouldContain(projectDir.Path);
+        ex.Message.ShouldContain(outputDir.Path);
     }
 
     [Fact]
@@ -273,7 +272,7 @@ public class TemplateContextTests
 
         var act = () => ctx.ReadFile("/nonexistent/absolute/path.xml");
 
-        act.Should().Throw<FileNotFoundException>();
+        act.ShouldThrow<FileNotFoundException>();
     }
 
     [Fact]
@@ -284,7 +283,7 @@ public class TemplateContextTests
 
         var act = () => ctx.ReadFile(null!);
 
-        act.Should().Throw<ArgumentException>();
+        act.ShouldThrow<ArgumentException>();
     }
 
     // ── PendingFiles ──────────────────────────────────────────────────────────
@@ -298,7 +297,7 @@ public class TemplateContextTests
         ctx.WriteFile("a.txt", "a");
         ctx.WriteFile("b.txt", "b");
 
-        ctx.PendingFiles.Should().HaveCount(2);
-        ctx.PendingFiles.Should().Contain(f => f.RelativePath == "a.txt");
+        ctx.PendingFiles.ShouldHaveCount(2);
+        ctx.PendingFiles.ShouldContain(f => f.RelativePath == "a.txt");
     }
 }

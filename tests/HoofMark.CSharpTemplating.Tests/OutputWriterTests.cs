@@ -1,4 +1,3 @@
-using FluentAssertions;
 using HoofMark.CSharpTemplating.Core;
 
 namespace HoofMark.CSharpTemplating.Tests;
@@ -13,7 +12,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.WriteLine();
 
-        w.ToString().Should().Be(Environment.NewLine);
+        w.ToString().ShouldBe(Environment.NewLine);
     }
 
     [Fact]
@@ -22,7 +21,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.WriteLine("hello");
 
-        w.ToString().Should().Be($"hello{Environment.NewLine}");
+        w.ToString().ShouldBe($"hello{Environment.NewLine}");
     }
 
     [Fact]
@@ -32,7 +31,7 @@ public class OutputWriterTests
         w.WriteLine("a").WriteLine("b").WriteLine("c");
 
         var lines = w.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        lines.Should().BeEquivalentTo(["a", "b", "c"]);
+        lines.ShouldBeEquivalentTo(new [] {"a", "b", "c"});
     }
 
     // ── Write ─────────────────────────────────────────────────────────────────
@@ -43,7 +42,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Write("hello");
 
-        w.ToString().Should().Be("hello");
+        w.ToString().ShouldBe("hello");
     }
 
     [Fact]
@@ -52,7 +51,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Write("hello ").WriteLine("world");
 
-        w.ToString().Should().Be($"hello world{Environment.NewLine}");
+        w.ToString().ShouldBe($"hello world{Environment.NewLine}");
     }
 
     [Fact]
@@ -61,7 +60,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Write("");
 
-        w.ToString().Should().BeEmpty();
+        w.ToString().ShouldBeEmpty();
     }
 
     // ── Indentation ───────────────────────────────────────────────────────────
@@ -72,7 +71,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Indent();
 
-        w.IndentLevel.Should().Be(1);
+        w.IndentLevel.ShouldBe(1);
     }
 
     [Fact]
@@ -81,7 +80,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Indent().Indent().Dedent();
 
-        w.IndentLevel.Should().Be(1);
+        w.IndentLevel.ShouldBe(1);
     }
 
     [Fact]
@@ -90,7 +89,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Dedent(5);
 
-        w.IndentLevel.Should().Be(0);
+        w.IndentLevel.ShouldBe(0);
     }
 
     [Fact]
@@ -99,7 +98,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Indent().WriteLine("indented");
 
-        w.ToString().Should().Be($"    indented{Environment.NewLine}");
+        w.ToString().ShouldBe($"    indented{Environment.NewLine}");
     }
 
     [Fact]
@@ -108,7 +107,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Indent(2).WriteLine("deep");
 
-        w.ToString().Should().Be($"        deep{Environment.NewLine}");
+        w.ToString().ShouldBe($"        deep{Environment.NewLine}");
     }
 
     [Fact]
@@ -120,9 +119,9 @@ public class OutputWriterTests
         w.WriteLine("outer-again");
 
         var lines = w.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-        lines[0].Should().Be("outer");
-        lines[1].Should().Be("    inner");
-        lines[2].Should().Be("outer-again");
+        lines[0].ShouldBe("outer");
+        lines[1].ShouldBe("    inner");
+        lines[2].ShouldBe("outer-again");
     }
 
     [Fact]
@@ -133,7 +132,7 @@ public class OutputWriterTests
         w.Write("a").Write("b").WriteLine("c");
 
         // Indent should only be prepended once at the start of the line
-        w.ToString().Should().Be($"    abc{Environment.NewLine}");
+        w.ToString().ShouldBe($"    abc{Environment.NewLine}");
     }
 
     // ── Custom indent unit ────────────────────────────────────────────────────
@@ -144,7 +143,7 @@ public class OutputWriterTests
         var w = new OutputWriter(indentUnit: "\t");
         w.Indent().WriteLine("tabbed");
 
-        w.ToString().Should().Be($"\ttabbed{Environment.NewLine}");
+        w.ToString().ShouldBe($"\ttabbed{Environment.NewLine}");
     }
 
     // ── Block() ───────────────────────────────────────────────────────────────
@@ -156,10 +155,10 @@ public class OutputWriterTests
         w.Block("public class Foo", body => body.WriteLine("int x;"));
 
         var result = w.ToString();
-        result.Should().Contain("public class Foo");
-        result.Should().Contain("{");
-        result.Should().Contain("    int x;");
-        result.Should().Contain("}");
+        result.ShouldContain("public class Foo");
+        result.ShouldContain("{");
+        result.ShouldContain("    int x;");
+        result.ShouldContain("}");
     }
 
     [Fact]
@@ -173,13 +172,13 @@ public class OutputWriterTests
         var lines = w.ToString()
             .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        lines.Should().Contain("namespace Foo");
-        lines.Should().Contain("{");
-        lines.Should().Contain("    public class Bar");
-        lines.Should().Contain("    {");
-        lines.Should().Contain("        int x;");
-        lines.Should().Contain("    }");
-        lines.Should().Contain("}");
+        lines.ShouldContain("namespace Foo");
+        lines.ShouldContain("{");
+        lines.ShouldContain("    public class Bar");
+        lines.ShouldContain("    {");
+        lines.ShouldContain("        int x;");
+        lines.ShouldContain("    }");
+        lines.ShouldContain("}");
     }
 
     [Fact]
@@ -188,7 +187,7 @@ public class OutputWriterTests
         var w = new OutputWriter();
         w.Block("struct Foo", body => body.WriteLine("int x;"), trailingSemicolon: true);
 
-        w.ToString().Should().Contain("};");
+        w.ToString().ShouldContain("};");
     }
 
     [Fact]
@@ -202,7 +201,7 @@ public class OutputWriterTests
         var lines = w.ToString()
             .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
 
-        lines.Last().Should().Be("after");
+        lines.Last().ShouldBe("after");
     }
 
     // ── Fluent chaining ───────────────────────────────────────────────────────
@@ -219,6 +218,6 @@ public class OutputWriterTests
             .Dedent()
             .Block("x", _ => { });
 
-        returned.Should().BeSameAs(w);
+        returned.ShouldBeSameAs(w);
     }
 }

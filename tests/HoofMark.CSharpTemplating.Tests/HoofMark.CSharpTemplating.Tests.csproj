@@ -29,7 +29,12 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>    
-    <PackageReference Include="FluentAssertions" Version="8.8.0" />    
+
+    <PackageReference Include="Shouldly" Version="5.0.0-preview.1" />
+    <!--PackageReference Include="Shouldly" Version="4.3.0" /-->
+
+    <!-- Replacing FluentAssertions with Shouldly due to revised licensing -->    
+    <!--PackageReference Include="FluentAssertions" Version="8.8.0" /-->    
 
     <!-- net8.0 -->
     <!--PackageReference Include="Microsoft.NET.Test.Sdk"       Version="17.9.0" /-->
