@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using HoofMark.CSharpTemplating.Core;
 
 namespace HoofMark.CSharpTemplating.Cli;
@@ -15,32 +16,31 @@ internal static class CheckCommandFactory
 {
     public static Command Build()
     {
-        var templateArg = new Argument<FileInfo>(
-            name: "template",
-            description: "Path to the template .cs file to check.")
+        var templateArg = new Argument<FileInfo>("template")
         {
+            Description = "Path to the template .cs file to check.",
             Arity = ArgumentArity.ExactlyOne
         };
 
-        var jsonOption = new Option<bool>(
-            aliases: ["--json"],
-            description: "Emit structured JSON output.");
-
-        var command = new Command("check", "Compile a template and report errors without running it.")
+        var jsonOption = new Option<bool>("--json")
         {
-            templateArg,
-            jsonOption
+            Description = "Emit structured JSON output."
         };
 
-        command.SetHandler(async (template, json) =>
+        var command = new Command("check", "Compile a template and report errors without running it.");
+        command.Add(templateArg);
+        command.Add(jsonOption);
+
+        command.SetAction(parseResult =>
         {
+            var template = parseResult.GetValue(templateArg);
+            var json = parseResult.GetValue(jsonOption);
             var reporter = json
                 ? (IOutputReporter)new JsonOutputReporter()
                 : new ConsoleOutputReporter();
 
-            await HandleAsync(template, reporter);
-        },
-        templateArg, jsonOption);
+            return HandleAsync(template!, reporter);
+        });
 
         return command;
     }

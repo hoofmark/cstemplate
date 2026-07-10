@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.Parsing;
 using System.Runtime.InteropServices;
 using HoofMark.CSharpTemplating.Core;
 
@@ -14,44 +15,47 @@ internal static class RunCommandFactory
 {
     public static Command Build()
     {
-        var templateArg = new Argument<FileInfo>(
-            name: "template",
-            description: "Path to the template .cs file to run.")
+        var templateArg = new Argument<FileInfo>("template")
         {
+            Description = "Path to the template .cs file to run.",
             Arity = ArgumentArity.ExactlyOne
         };
 
-        var outputOption = new Option<DirectoryInfo?>(
-            aliases: ["--output", "-o"],
-            description: "Output root directory for generated files. " +
-                         "Defaults to a 'generated/' folder next to the template.");
-
-        var configOption = new Option<FileInfo?>(
-            aliases: ["--config", "-c"],
-            description: "Path to a JSON config file. " +
-                         "Defaults to the sibling .json file next to the template.");
-
-        var jsonOption = new Option<bool>(
-            aliases: ["--json"],
-            description: "Emit structured JSON output (for editor integrations).");
-
-        var command = new Command("run", "Compile and run a template file.")
+        var outputOption = new Option<DirectoryInfo?>("--output", new[] { "-o" })
         {
-            templateArg,
-            outputOption,
-            configOption,
-            jsonOption
+            Description = "Output root directory for generated files. " +
+                          "Defaults to a 'generated/' folder next to the template."
         };
 
-        command.SetHandler(async (template, output, config, json) =>
+        var configOption = new Option<FileInfo?>("--config", new[] { "-c" })
         {
+            Description = "Path to a JSON config file. " +
+                          "Defaults to the sibling .json file next to the template."
+        };
+
+        var jsonOption = new Option<bool>("--json")
+        {
+            Description = "Emit structured JSON output (for editor integrations)."
+        };
+
+        var command = new Command("run", "Compile and run a template file.");
+        command.Add(templateArg);
+        command.Add(outputOption);
+        command.Add(configOption);
+        command.Add(jsonOption);
+
+        command.SetAction(parseResult =>
+        {
+            var template = parseResult.GetValue(templateArg);
+            var output = parseResult.GetValue(outputOption);
+            var config = parseResult.GetValue(configOption);
+            var json = parseResult.GetValue(jsonOption);
             var reporter = json
                 ? (IOutputReporter)new JsonOutputReporter()
                 : new ConsoleOutputReporter();
 
-            await HandleAsync(template, output, config, reporter);
-        },
-        templateArg, outputOption, configOption, jsonOption);
+            return HandleAsync(template!, output, config, reporter);
+        });
 
         return command;
     }

@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <!-- Minimal, fast arg parsing — no heavy framework needed -->
-    <PackageReference Include="System.CommandLine" Version="2.0.3" />
+    <PackageReference Include="System.CommandLine" Version="2.0.9" />
   </ItemGroup>
 
 </Project>
