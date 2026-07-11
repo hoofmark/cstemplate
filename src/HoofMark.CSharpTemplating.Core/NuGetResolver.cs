@@ -97,6 +97,26 @@ public sealed class NuGetResolver
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
+    /*
+    **  The tool's TFM (targetFramework) governs three things:
+    ** 
+    ** 1. **Template compilation** — Roslyn is invoked in-process, so the C# language version available to template 
+    **    authors is determined by the version of Roslyn shipped with the tool's SDK, not the target project. On 
+    **    net10.0 you get C# 14; on net8.0 you get C# 12.
+    **
+    ** 2. **Referenced assemblies** — any assembly loaded into the `TemplateAssemblyLoadContext` must be compatible 
+    **    with the tool's runtime. A net10.0 assembly cannot be loaded by a net8.0 host. The reverse works fine 
+    **   (net8.0 assemblies load happily under net10.0).
+    **
+    ** 3. **NuGet package resolution** — `project.assets.json` is keyed by TFM (`net10.0`, `net8.0` etc.).
+    **    The resolver picks the target that matches the tool's own TFM. If the tool runs on net8.0 but the sample 
+    **    project targets net10.0, there may be no `net8.0` target in the assets file, causing resolution to fail 
+    **    entirely. The reverse works fine (net8.0 assemblies load happily if the tool runs on net10.0).
+    **
+    ** The generated output files are just text — they're written to disk as `.cs` files. Which .NET version or C# 
+    ** version the *generated code* targets is entirely up to the consuming project that compiles them. cstemplate 
+    ** has no involvement in that compilation at all.
+    */
     private static string ResolveTargetKey(
         AssetsFile assets,
         string? targetFramework,
@@ -116,9 +136,20 @@ public sealed class NuGetResolver
             .FirstOrDefault(k => k.StartsWith(targetFramework, StringComparison.OrdinalIgnoreCase));
 
         if (match == null)
-            throw new NuGetResolutionException(
-                $"Target framework '{targetFramework}' not found in '{assetsFilePath}'. " +
-                $"Available targets: {string.Join(", ", assets.Targets.Keys)}");
+        {
+            // Check if the requested TFM is lower than all available targets
+            var availableTargetsList = assets.Targets.Keys.Select(k => k.TargetFrameworkVersion()).OrderBy(v => v);
+            var tfm = targetFramework.TargetFrameworkVersion();
+
+            if (availableTargetsList.All(v => v.Major > tfm.Major || (v.Major == tfm.Major && v.Minor > tfm.Minor)))
+            {
+                // The TFM used to compile the tool is older than all available NuGet targets, 
+                // so template compilation will fail. Provide a more helpful error message.
+                throw new NuGetResolutionException(
+                    $"Target framework '{targetFramework}' ({tfm}) not found in '{assetsFilePath}'. " +
+                    $"Available targets: {string.Join(", ", assets.Targets.Keys)} ({string.Join(", ", availableTargetsList.Select(v => v.ToString()))})");
+            }
+        }
 
         return match ?? assets.Targets.Keys.First();
     }
@@ -433,4 +464,50 @@ public sealed class NuGetResolutionException : CsTemplateException
 {
     public NuGetResolutionException(string message) : base(message) { }
     public NuGetResolutionException(string message, Exception inner) : base(message, inner) { }
+}
+
+public static class NuGetResolverExtensions
+{
+    /// <summary>
+    /// Resolves managed and native assemblies for the requested packages from
+    /// the project's assets file. Throws <see cref="NuGetResolutionException"/>
+    /// if resolution fails.
+    /// </summary>
+    public static NuGetResolutionResult ResolveOrThrow(
+        this NuGetResolver resolver,
+        string assetsFilePath,
+        IEnumerable<string> packageFilter,
+        string? targetFramework = null)
+    {
+        try
+        {
+            return resolver.Resolve(assetsFilePath, packageFilter, targetFramework);
+        }
+        catch (NuGetResolutionException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            throw new NuGetResolutionException(
+                $"Unexpected error while resolving NuGet packages: {ex.Message}", ex);
+        }
+    }
+
+    /// <summary>
+    /// Parses a target framework moniker (TFM) string like "net10.0" and returns the corresponding <see cref="Version"/> object.
+    /// 
+    /// Throws <see cref="ArgumentException"/> if the TFM is invalid.
+    /// </summary>
+    public static Version TargetFrameworkVersion(this string tfm)
+    {
+        if (!tfm.StartsWith("net"))
+            throw new ArgumentException($"Invalid target framework moniker: '{tfm}'");
+
+        var versionPart = string.Concat(tfm.Substring(3).Where(c => "0123456789.".Contains(c)));
+        if (Version.TryParse(versionPart, out var version))
+            return version;
+
+        throw new ArgumentException($"Failed to parse target framework version: '{tfm}' ({versionPart})");
+    }    
 }
