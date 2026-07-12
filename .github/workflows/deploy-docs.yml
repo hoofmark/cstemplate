@@ -6,7 +6,7 @@ on:
     paths:
       - 'src/**'
       - 'docs/docfx/**'
-      - 'docs/publish/index.html'
+      - 'docs/_site/index.html'
       - '.github/workflows/deploy-docs.yml'
   workflow_dispatch:   # allow manual trigger from the Actions tab
 
@@ -42,19 +42,19 @@ jobs:
 
       - name: Build DocFX site
         run: docfx docs/docfx/docfx.json
-        # Outputs to docs/publish/ref/ as configured in docfx.json
+        # Outputs to docs/_site as configured in docfx.json
 
-      - name: Copy landing page into publish root
+      - name: Copy landing page into _site root
         run: |
-          # index.html is already in docs/publish/ — nothing to copy.
+          # index.html is already in docs/_site/ — nothing to copy.
           # This step is a no-op but makes the intent explicit.
-          echo "docs/publish contents:"
-          ls docs/publish/
+          echo "docs/_site contents:"
+          ls docs/_site/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/publish
+          path: docs/_site
 
   deploy:
     name: Deploy to GitHub Pages

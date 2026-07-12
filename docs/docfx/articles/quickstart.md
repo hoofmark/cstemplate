@@ -83,4 +83,4 @@ the template, or in the `outputRoot` specified in
 
 - [CLI reference](cli.md) — all commands, options, and exit codes
 - [Workspace configuration](workspace-config.md) — NuGet packages, output roots, local references
-- [API reference](../api/index.md) — `ITemplateContext`, `IOutputWriter`, and all public types
+- [API reference](../api/HoofMark.CSharpTemplating.Abstractions.yml) — `ITemplateContext`, `IOutputWriter`, and all public types
