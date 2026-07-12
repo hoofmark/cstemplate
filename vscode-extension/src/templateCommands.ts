@@ -221,6 +221,131 @@ export class TemplateCommands {
     await this.checkTemplate(document.uri);
   }
 
+
+  // ---------------------------------------------------------------------------
+  // cstemplate.runTemplateDebug
+  // ---------------------------------------------------------------------------
+
+  async runTemplateDebug(uri?: vscode.Uri): Promise<void> {
+    const templateUri = await this.resolveTemplateUri(uri);
+    if (!templateUri) { return; }
+
+    const templatePath = templateUri.fsPath;
+
+    this.output.beginRun(templatePath);
+    this.output.show();
+
+    vscode.window.showInformationMessage(
+      `cstemplate: Starting debug session for '${require('path').basename(templatePath)}'…`
+    );
+
+    let debugReady: import('./cliRunner').DebugReadyInfo;
+    try {
+      debugReady = await this.cli.runDebug({ templatePath });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      vscode.window.showErrorMessage(`cstemplate: Failed to start debug run — ${message}`);
+      return;
+    }
+
+    // Attach the VS Code .NET debugger to the waiting cstemplate process.
+    //
+    // justMyCode: false  — the template assembly is dynamically compiled and
+    //   has no project context; with justMyCode on the debugger treats it as
+    //   external code and skips breakpoints inside it entirely.
+    //
+    // requireExactSource: false — relaxes the source-path matching check so
+    //   breakpoints bind even if the path embedded in the PDB differs slightly
+    //   from the URI VS Code uses for the open editor document.
+    //
+    // symbolOptions.searchMicrosoftSymbolServer / searchNuGetOrgSymbolServer:
+    //   false — we don't need symbol servers for our own template assembly.
+    //
+    // sourceFileMap — maps the embedded source path in the PDB back to the
+    //   actual template file so VS Code highlights the correct line.
+    const templateDir = require('path').dirname(templatePath);
+    const attached = await vscode.debug.startDebugging(
+      vscode.workspace.workspaceFolders?.[0],
+      {
+        type: 'coreclr',
+        request: 'attach',
+        name: `tgen: ${require('path').basename(templatePath)}`,
+        processId: debugReady.pid,
+        justMyCode: false,
+        requireExactSource: false,
+        symbolOptions: {
+          searchMicrosoftSymbolServer: false,
+          searchNuGetOrgSymbolServer:  false,
+          moduleFilter: {
+            mode: 'loadAllButExcluded',
+            excludedModules: [],
+          },
+        },
+        sourceFileMap: {
+          [templatePath]: templatePath,
+        },
+      }
+    );
+
+    if (!attached) {
+      vscode.window.showErrorMessage(
+        'tgen: Failed to attach debugger. ' +
+        'Ensure the C# Dev Kit extension is installed and try again.'
+      );
+      return;
+    }
+
+    // Wait for the debugger to hit the initial Debugger.Break() pause point
+    // before signalling the process to continue. This gives the debugger time
+    // to load symbols for the template assembly and bind any breakpoints the
+    // user has set in the .template.cs file before execution reaches them.
+    await new Promise<void>(resolve => {
+      const listener = vscode.debug.onDidReceiveDebugSessionCustomEvent(e => {
+        if (e.event === 'stopped') {
+          listener.dispose();
+          resolve();
+        }
+      });
+      // Safety timeout — if the stopped event never arrives, continue anyway
+      setTimeout(() => { listener.dispose(); resolve(); }, 10_000);
+    });
+
+    // Wait for the template to finish executing
+    const result = await debugReady.completion;
+
+    switch (result.status) {
+      case 'success':
+        this.diagnostics.clear(templateUri);
+        this.output.reportSuccess(result);
+        vscode.window.showInformationMessage(
+          `tgen: Generated ${result.fileCount} file(s) from '${result.templateName}'.`
+        );
+        break;
+
+      case 'compilationError':
+        this.output.reportCompilationFailure(result, templatePath);
+        this.diagnostics.publish(templateUri, result.diagnostics ?? []);
+        vscode.window.showErrorMessage(
+          `tgen: '${require('path').basename(templatePath)}' failed to compile.`
+        );
+        break;
+
+      case 'executionError':
+        this.diagnostics.clear(templateUri);
+        this.output.reportExecutionFailure(result, templatePath);
+        vscode.window.showErrorMessage(
+          `tgen: '${require('path').basename(templatePath)}' threw an exception. ` +
+          `See Output panel for details.`
+        );
+        break;
+
+      default:
+        this.output.reportError(result.message ?? 'Unknown error.');
+        vscode.window.showErrorMessage(`cstemplate error: ${result.message}`);
+        break;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Helpers
   // ---------------------------------------------------------------------------

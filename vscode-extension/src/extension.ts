@@ -28,6 +28,11 @@ export function activate(context: vscode.ExtensionContext): void {
     ),
 
     vscode.commands.registerCommand(
+      'cstemplate.runTemplateDebug',
+      (uri?: vscode.Uri) => commands.runTemplateDebug(uri)
+    ),
+
+    vscode.commands.registerCommand(
       'cstemplate.checkTemplate',
       (uri?: vscode.Uri) => commands.checkTemplate(uri)
     ),

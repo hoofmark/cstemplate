@@ -1,13 +1,14 @@
 /**
  * Mirrors the JSON output schema of `cstemplate run --json` and `cstemplate check --json`.
- * Keep in sync with CliOutput / CliDiagnostic in CsTemplate.Cli/OutputReporter.cs.
+ * Keep in sync with CliOutput / CliDiagnostic in HoofMark.CSharpTemplating.Cli/OutputReporter.cs.
  */
 
 export type CliStatus =
   | 'success'
   | 'compilationError'
   | 'executionError'
-  | 'error';
+  | 'error'
+  | 'waitingForDebugger';
 
 export interface CliDiagnostic {
   severity: 'error' | 'warning' | 'info';

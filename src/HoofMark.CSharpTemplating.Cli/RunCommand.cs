@@ -38,11 +38,17 @@ internal static class RunCommandFactory
             Description = "Emit structured JSON output (for editor integrations)."
         };
 
+        var debugOption = new Option<bool>("--debug")
+        {
+            Description = "Enable debug mode (emit compiled assembly and PDB to disk)."
+        };
+
         var command = new Command("run", "Compile and run a template file.");
         command.Add(templateArg);
         command.Add(outputOption);
         command.Add(configOption);
         command.Add(jsonOption);
+        command.Add(debugOption);
 
         command.SetAction(parseResult =>
         {
@@ -50,11 +56,12 @@ internal static class RunCommandFactory
             var output = parseResult.GetValue(outputOption);
             var config = parseResult.GetValue(configOption);
             var json = parseResult.GetValue(jsonOption);
+            var debug = parseResult.GetValue(debugOption);
             var reporter = json
                 ? (IOutputReporter)new JsonOutputReporter()
                 : new ConsoleOutputReporter();
 
-            return HandleAsync(template!, output, config, reporter);
+            return HandleAsync(template!, output, config, reporter, debug);
         });
 
         return command;
@@ -64,7 +71,8 @@ internal static class RunCommandFactory
         FileInfo template,
         DirectoryInfo? output,
         FileInfo? config,
-        IOutputReporter reporter)
+        IOutputReporter reporter,
+        bool debug = false)
     {
         if (!template.Exists)
         {
@@ -95,7 +103,8 @@ internal static class RunCommandFactory
         {
             AdditionalReferencePaths = references.ManagedPaths,
             NativeLibraryPaths       = references.NativePaths,
-            ProjectRoot              = workspaceConfig?.ConfigDirectory
+            ProjectRoot              = workspaceConfig?.ConfigDirectory,
+            DebugMode                = debug
         };
 
         var runner = new TemplateRunner(runnerOptions);

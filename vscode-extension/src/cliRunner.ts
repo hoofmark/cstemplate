@@ -12,6 +12,12 @@ export interface CheckOptions {
   templatePath: string;
 }
 
+export interface DebugReadyInfo {
+  pid: number;
+  /** Resolves when the template process exits, with its final CliOutput. */
+  completion: Promise<CliOutput>;
+}
+
 /**
  * Spawns the cstemplate CLI and returns the parsed JSON output.
  * All CLI invocations go through here — commands and the on-save checker
@@ -77,6 +83,116 @@ export class CliRunner {
   async check(options: CheckOptions): Promise<CliOutput> {
     const args = ['check', options.templatePath, '--json'];
     return this.invoke(args, options.templatePath);
+  }
+
+  /**
+   * Starts a debug run. Returns as soon as the CLI has printed its PID and is
+   * waiting for a debugger — the caller is responsible for attaching and then
+   * awaiting the returned completion promise for the final result.
+   *
+   * Rejects if the CLI fails to start or does not emit a waitingForDebugger
+   * message within a reasonable timeout.
+   */
+  async runDebug(options: RunOptions): Promise<DebugReadyInfo> {
+    const args = ['run', options.templatePath, '--json', '--debug'];
+
+    if (options.outputRoot) {
+      args.push('--output', options.outputRoot);
+    } else {
+      const settingRoot = this.outputRoot;
+      if (settingRoot && !(await this.hasWorkspaceConfig(options.templatePath))) {
+        args.push('--output', settingRoot);
+      }
+    }
+    if (options.configPath) { args.push('--config', options.configPath); }
+
+    const cwd = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+
+    return new Promise((resolveReady, rejectReady) => {
+      let stdoutBuffer = '';
+      let stderrBuffer = '';
+      let debugReadyResolved = false;
+
+      // Will be resolved/rejected when the process exits
+      let resolveCompletion!: (result: CliOutput) => void;
+      let rejectCompletion!:  (err: Error) => void;
+      const completion = new Promise<CliOutput>((res, rej) => {
+        resolveCompletion = res;
+        rejectCompletion  = rej;
+      });
+
+      const proc = cp.spawn(this.cliPath, args, { cwd, shell: false });
+
+      // Timeout: if we don't hear waitingForDebugger within 15s, give up
+      const timeout = setTimeout(() => {
+        if (!debugReadyResolved) {
+          proc.kill();
+          rejectReady(new Error(
+            'cstemplate did not emit a waitingForDebugger message within 15 seconds.'
+          ));
+        }
+      }, 15_000);
+
+      proc.stdout.on('data', (chunk: Buffer) => {
+        stdoutBuffer += chunk.toString();
+
+        // The CLI emits one JSON object per line — scan for the debug-ready line
+        if (!debugReadyResolved) {
+          const lines = stdoutBuffer.split('\n');
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) { continue; }
+            try {
+              const parsed = JSON.parse(trimmed);
+              if (parsed.status === 'waitingForDebugger' && typeof parsed.pid === 'number') {
+                debugReadyResolved = true;
+                clearTimeout(timeout);
+                resolveReady({ pid: parsed.pid, completion });
+                return;
+              }
+            } catch {
+              // Not JSON yet — keep buffering
+            }
+          }
+        }
+      });
+
+      proc.stderr.on('data', (chunk: Buffer) => {
+        stderrBuffer += chunk.toString();
+      });
+
+      proc.on('error', (err) => {
+        clearTimeout(timeout);
+        if (!debugReadyResolved) {
+          rejectReady(err);
+        } else {
+          rejectCompletion(err);
+        }
+      });
+
+      proc.on('close', () => {
+        clearTimeout(timeout);
+        const trimmed = stdoutBuffer.trim();
+
+        // Strip the waitingForDebugger line — the final output is the last JSON object
+        const lines = trimmed.split('\n').map((l: string) => l.trim()).filter(Boolean);
+        const lastLine = lines[lines.length - 1] ?? '';
+
+        try {
+          const result = JSON.parse(lastLine) as CliOutput;
+          if (result.status !== 'waitingForDebugger') {
+            resolveCompletion(result);
+            return;
+          }
+        } catch { /* fall through */ }
+
+        // No usable final output
+        resolveCompletion({
+          status: 'error',
+          message: stderrBuffer.trim() || 'cstemplate produced no output after debugging.',
+        });
+      });
+    });
   }
 
   private invoke(args: string[], templatePath: string): Promise<CliOutput> {

@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace HoofMark.CSharpTemplating.Core;
 
 /// <summary>
@@ -10,6 +12,7 @@ public sealed class TemplateRunner
     private readonly TemplateCompiler _compiler;
     private readonly string? _projectRoot;
     private readonly string _indentUnit;
+    private readonly bool _debugMode;
 
     public TemplateRunner(TemplateRunnerOptions? options = null)
     {
@@ -17,6 +20,7 @@ public sealed class TemplateRunner
         _compiler    = new TemplateCompiler(opts.AdditionalReferencePaths, opts.NativeLibraryPaths);
         _projectRoot = opts.ProjectRoot;
         _indentUnit  = opts.IndentUnit;
+        _debugMode   = opts.DebugMode;
     }
 
     /// <summary>
@@ -49,7 +53,7 @@ public sealed class TemplateRunner
         var config = TemplateConfig.LoadFrom(configPath);
 
         // 2. Compile
-        using var compiled = _compiler.Compile(templateFilePath);
+        using var compiled = _compiler.Compile(templateFilePath, Encoding.UTF8, _debugMode);
 
         // 3. Build context
         var templateDirectory = Path.GetDirectoryName(templateFilePath)!;
@@ -88,7 +92,7 @@ public sealed class TemplateRunnerOptions
     public IEnumerable<string>? AdditionalReferencePaths { get; init; }
 
     /// <summary>
-    /// The indentation unit used by IOutputWriter implementations.
+    /// The indentation unit used by <see cref="IOutputWriter"/> implementations.
     /// Defaults to 4 spaces.
     /// </summary>
     public string IndentUnit { get; init; } = "    ";
@@ -106,6 +110,15 @@ public sealed class TemplateRunnerOptions
     /// If <c>null</c>, only the template directory and output root are searched.
     /// </summary>
     public string? ProjectRoot { get; init; }
+
+    /// <summary>
+    /// When <c>true</c>, the compiler emits the template assembly and PDB to a
+    /// temporary directory on disk rather than to memory streams. This allows an
+    /// attached debugger to locate the symbols and map execution back to the
+    /// original <c>.template.cs</c> source file, enabling breakpoints inside
+    /// template code. Has no effect when no debugger is attached.
+    /// </summary>
+    public bool DebugMode { get; init; }
 }
 
 /// <summary>

@@ -1,5 +1,7 @@
 # cstemplate for VS Code
 
+This is a pre-release of cstemplate (version 0.1.0), to check compatibility with VSCode Marketplace.
+
 Run C# template files (`.template.cs`) directly from VS Code.
 
 For full documentation, see [hoofmark.github.io/cstemplate](https://hoofmark.github.io/cstemplate).

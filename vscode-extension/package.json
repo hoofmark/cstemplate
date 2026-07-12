@@ -4,19 +4,19 @@
   "description": "Run, check, and manage cstemplate C# templates from VS Code.",
   "version": "0.1.0",
   "publisher": "HoofMark",
-  "engines": { "vscode": "^1.85.0" },
-  "categories": ["Other"],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/hoofmark/cstemplate"
   },
-
   "activationEvents": [],
-
   "main": "./out/extension.js",
-
   "contributes": {
-
     "commands": [
       {
         "command": "cstemplate.runTemplate",
@@ -41,9 +41,14 @@
         "title": "Reveal Generated Output Folder",
         "category": "cstemplate",
         "icon": "$(folder-opened)"
+      },
+      {
+        "command": "cstemplate.runTemplateDebug",
+        "title": "Run Template (Debug)",
+        "category": "cstemplate",
+        "icon": "$(debug-start)"
       }
     ],
-
     "menus": {
       "explorer/context": [
         {
@@ -97,10 +102,13 @@
         {
           "command": "cstemplate.revealOutput",
           "when": "editorIsOpen"
+        },
+        {
+          "command": "cstemplate.runTemplateDebug",
+          "when": "editorIsOpen"
         }
       ]
     },
-
     "configuration": {
       "title": "cstemplate",
       "properties": {
@@ -131,26 +139,29 @@
         }
       }
     },
-
     "keybindings": [
       {
         "command": "cstemplate.runTemplate",
         "key": "ctrl+shift+t",
         "mac": "cmd+shift+t",
         "when": "cstemplate.isTemplateFile"
+      },
+      {
+        "command": "cstemplate.runTemplateDebug",
+        "key": "ctrl+shift+d",
+        "mac": "cmd+shift+d",
+        "when": "cstemplate.isTemplateFile"
       }
     ]
   },
-
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "package": "vsce package"
   },
-
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^20.00.00",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.3.0"
   }
