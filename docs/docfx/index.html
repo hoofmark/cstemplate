@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>cstemplate — C# Code Generation for VS Code</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #0d1117;
+      --bg2:       #161b22;
+      --bg3:       #1c2331;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --muted:     #8b949e;
+      --blue:      #4f8ef7;
+      --blue-dim:  #1a3560;
+      --green:     #3fb950;
+      --green-dim: #0d3320;
+      --purple:    #a78bfa;
+      --purple-dim:#2a1f52;
+      --accent:    #4f8ef7;
+      --mono:      'JetBrains Mono', monospace;
+      --serif:     'Fraunces', Georgia, serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 15px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ── */
+    .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; }
+
+    /* ── Nav ── */
+    nav {
+      border-bottom: 1px solid var(--border);
+      padding: 1.1rem 0;
+      position: sticky;
+      top: 0;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+    }
+    nav .inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-brand {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-decoration: none;
+      letter-spacing: -0.02em;
+    }
+    .nav-brand span { color: var(--blue); }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.15s; }
+    nav a:hover { color: var(--text); }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 6rem 0 5rem;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -120px; left: 50%;
+      transform: translateX(-30%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(79,142,247,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.5s ease forwards;
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(2.4rem, 5vw, 3.6rem);
+      font-weight: 300;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.1s ease forwards;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--blue);
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.2s ease forwards;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.5s 0.3s ease forwards;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.4rem;
+      border-radius: 6px;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+    }
+    .btn-primary:hover { background: #6ba3ff; transform: translateY(-1px); }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--blue); color: var(--blue); transform: translateY(-1px); }
+
+    /* ── Install strip ── */
+    .install-strip {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 1.2rem 0;
+    }
+    .install-strip .inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .install-label { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+    .install-cmd {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.5rem 1rem;
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--green);
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .install-cmd .prompt { color: var(--muted); user-select: none; }
+    .copy-btn {
+      margin-left: auto;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .copy-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+    /* ── Sections ── */
+    section { padding: 5rem 0; border-bottom: 1px solid var(--border); }
+    section:last-of-type { border-bottom: none; }
+
+    .section-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 0.75rem;
+    }
+    h2 {
+      font-family: var(--serif);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 300;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
+      color: var(--text);
+    }
+    .lead {
+      color: var(--muted);
+      margin-bottom: 3rem;
+      max-width: 580px;
+      line-height: 1.8;
+    }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin: 3rem 0;
+      flex-wrap: wrap;
+    }
+    .flow-box {
+      flex: 1;
+      min-width: 140px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1rem;
+      text-align: center;
+    }
+    .flow-box-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.4rem;
+    }
+    .flow-box-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .flow-box.blue  { border-color: var(--blue-dim);   background: rgba(79,142,247,0.06); }
+    .flow-box.blue .flow-box-label  { color: var(--blue); }
+    .flow-box.blue .flow-box-name   { color: var(--blue); }
+    .flow-box.purple{ border-color: var(--purple-dim); background: rgba(167,139,250,0.06); }
+    .flow-box.purple .flow-box-label{ color: var(--purple); }
+    .flow-box.purple .flow-box-name { color: var(--purple); }
+    .flow-box.green { border-color: var(--green-dim);  background: rgba(63,185,80,0.06); }
+    .flow-box.green .flow-box-label { color: var(--green); }
+    .flow-box.green .flow-box-name  { color: var(--green); }
+    .flow-box.engine{
+      border-color: #334155;
+      background: #1e293b;
+      flex: 0 0 auto;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+      padding: 0;
+    }
+    .flow-arrow {
+      color: var(--muted);
+      font-size: 1.2rem;
+      padding: 0 0.5rem;
+      flex: 0 0 auto;
+    }
+    .flow-inputs {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      flex: 1;
+    }
+
+    /* ── Code blocks ── */
+    pre {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      margin: 1.5rem 0;
+      font-size: 0.85rem;
+      line-height: 1.7;
+    }
+    code { font-family: var(--mono); }
+    p code, li code {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.1em 0.4em;
+      font-size: 0.88em;
+      color: var(--blue);
+    }
+    .kw  { color: #ff7b72; }
+    .typ { color: #79c0ff; }
+    .str { color: #a5d6ff; }
+    .cmt { color: #8b949e; font-style: italic; }
+    .met { color: #d2a8ff; }
+    .num { color: var(--green); }
+    .pun { color: var(--muted); }
+
+    /* ── Feature grid ── */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .feature {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .feature:hover { border-color: var(--blue); }
+    .feature-icon { font-size: 1.4rem; margin-bottom: 0.75rem; }
+    .feature h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text); }
+    .feature p  { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Steps ── */
+    .steps { counter-reset: step; display: flex; flex-direction: column; gap: 2rem; margin-top: 2rem; }
+    .step  { display: flex; gap: 1.5rem; align-items: flex-start; }
+    .step-num {
+      counter-increment: step;
+      flex: 0 0 auto;
+      width: 2rem; height: 2rem;
+      background: var(--blue-dim);
+      border: 1px solid var(--blue);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--blue);
+    }
+    .step-num::before { content: counter(step); }
+    .step-body h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; }
+    .step-body p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Config table ── */
+    table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
+    th {
+      text-align: left;
+      padding: 0.6rem 1rem;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+    }
+    td {
+      padding: 0.65rem 1rem;
+      border: 1px solid var(--border);
+      vertical-align: top;
+      color: var(--text);
+    }
+    tr:hover td { background: var(--bg2); }
+    td:first-child code { color: var(--purple); }
+
+    /* ── Footer ── */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--blue); }
+    footer .links { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1rem; }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 600px) {
+      .flow { flex-direction: column; align-items: stretch; }
+      .flow-arrow { transform: rotate(90deg); text-align: center; }
+      .flow-box.engine { width: 100%; height: auto; border-radius: 8px; padding: 1rem; }
+      nav ul { gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="inner">
+    <a class="nav-brand" href="#"><span>{</span> cstemplate <span>}</span></a>
+    <ul>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#quickstart">Quickstart</a></li>
+      <li><a href="#config">Configuration</a></li>
+      <li><a href="docs/">Docs</a></li>
+      <li><a href="https://github.com/HoofMark/cstemplate">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="container">
+    <p class="hero-eyebrow">HoofMark · Open Source</p>
+    <h1>C# code generation<br>that <em>stays in your IDE</em></h1>
+    <p class="hero-sub">
+      cstemplate lets you write code generators as ordinary C# files, with full
+      IntelliSense, go-to-definition, and compile-time checking — no string
+      templates, no external DSL, no build pipeline required.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="#quickstart">Get started</a>
+      <a class="btn btn-secondary" href="https://marketplace.visualstudio.com/items?itemName=HoofMark.cstemplate">VS Code extension</a>
+      <a class="btn btn-secondary" href="https://www.nuget.org/packages/HoofMark.CSharpTemplating.Cli">NuGet CLI tool</a>
+    </div>
+  </div>
+</section>
+
+<div class="install-strip">
+  <div class="inner">
+    <span class="install-label">Install CLI</span>
+    <div class="install-cmd">
+      <span class="prompt">$</span>
+      <span id="cmd-text">dotnet tool install --global HoofMark.CSharpTemplating.Cli</span>
+      <button class="copy-btn" id="copy-btn" onclick="copyCmd()">copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how-it-works">
+  <div class="container">
+    <p class="section-label">Concept</p>
+    <h2>Templates are just C# classes</h2>
+    <p class="lead">
+      Write a class that implements <code>ITemplate</code>, run it with the VS Code
+      extension or CLI, and generated files appear on disk. No magic, no configuration
+      language to learn.
+    </p>
+
+    <div class="flow">
+      <div class="flow-inputs">
+        <div class="flow-box blue">
+          <div class="flow-box-label">Template</div>
+          <div class="flow-box-name">MyTemplate.template.cs</div>
+        </div>
+        <div class="flow-box purple">
+          <div class="flow-box-label">Config / Model</div>
+          <div class="flow-box-name">MyTemplate.json</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box engine">C#</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">
+        <div class="flow-box-label">Output</div>
+        <div class="flow-box-name">Generated .cs files</div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <h3>Full IntelliSense</h3>
+        <p>Templates compile as part of your project. C# Dev Kit gives you completions, refactoring, and error squiggles as you type.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📦</div>
+        <h3>NuGet aware</h3>
+        <p>Reference any NuGet package in your templates — including packages with native dependencies like Microsoft.Data.SqlClient.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🗂️</div>
+        <h3>Model file support</h3>
+        <p>Read XML, JSON, or any file format with <code>context.ReadFile()</code>. Relative paths resolve from the template directory automatically.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔒</div>
+        <h3>Isolated execution</h3>
+        <p>Each template runs in its own AssemblyLoadContext. No conflicts between templates or between template and host dependencies.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🖥️</div>
+        <h3>VS Code integration</h3>
+        <p>Right-click any <code>.template.cs</code> file to run it. Compile errors appear as inline diagnostics. Output panel shows what was generated.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">🔧</div>
+        <h3>CLI first</h3>
+        <p>The <code>cstemplate</code> CLI works standalone — integrate with any build pipeline, CI system, or editor.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUICKSTART -->
+<section id="quickstart">
+  <div class="container">
+    <p class="section-label">Quickstart</p>
+    <h2>Up and running in minutes</h2>
+    <p class="lead">Three steps from install to generated code.</p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h3>Install the CLI tool and VS Code extension</h3>
+          <p>Install the global dotnet tool, then install the VS Code extension from the marketplace.</p>
+          <pre><code><span class="pun">$</span> dotnet tool install --global HoofMark.CSharpTemplating.Cli</code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h3>Add the abstractions package to your project</h3>
+          <pre><code><span class="pun">&lt;</span><span class="typ">PackageReference</span> <span class="str">Include</span><span class="pun">=</span><span class="str">"HoofMark.CSharpTemplating.Abstractions"</span>
+                  <span class="str">Version</span><span class="pun">=</span><span class="str">"1.0.0"</span> <span class="pun">/&gt;</span></code></pre>
+        </div>
+      </div>
+
+      <div class="step">
+        <div class="step-num"></div>
+        <div class="step-body">
+          <h3>Write your first template</h3>
+          <p>Create a <code>.template.cs</code> file anywhere in your project:</p>
+<pre><code><span class="kw">using</span> HoofMark.CSharpTemplating.Abstractions;
+
+<span class="kw">namespace</span> MyProject.Templates;
+
+<span class="kw">public class</span> <span class="typ">OrderServiceTemplate</span> : <span class="typ">ITemplate</span>
+{
+    <span class="kw">public static void</span> <span class="met">Run</span>(<span class="typ">ITemplateContext</span> context)
+    {
+        <span class="kw">var</span> ns = context.Config.<span class="met">Get</span>(<span class="str">"Namespace"</span>);
+
+        context.<span class="met">WriteFile</span>(<span class="str">"OrderService.cs"</span>, w =&gt; w
+            .<span class="met">WriteLine</span>(<span class="str">$"namespace {ns};"</span>)
+            .<span class="met">Block</span>(<span class="str">"public class OrderService"</span>, body =&gt; body
+                .<span class="met">WriteLine</span>(<span class="str">"// Generated by cstemplate"</span>)
+            ));
+    }
+}</code></pre>
+          <p>Right-click the file in VS Code and choose <strong>Run Template</strong>, or run from the terminal:</p>
+          <pre><code><span class="pun">$</span> cstemplate run OrderServiceTemplate.template.cs</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONFIG -->
+<section id="config">
+  <div class="container">
+    <p class="section-label">Configuration</p>
+    <h2>cstemplate.config.json</h2>
+    <p class="lead">
+      Place a <code>cstemplate.config.json</code> file in your project folder (or any
+      parent folder) to control output location, NuGet packages, and local references.
+    </p>
+
+<pre><code>{
+  <span class="str">"outputRoot"</span>: <span class="str">"../generated"</span>,
+  <span class="str">"project"</span>:    <span class="str">"./MyProject.csproj"</span>,
+  <span class="str">"nugetPackages"</span>: [
+    <span class="str">"Humanizer.Core"</span>,
+    <span class="str">"Microsoft.Data.SqlClient"</span>
+  ],
+  <span class="str">"references"</span>: [
+    <span class="str">"path/to/LocalAssembly.dll"</span>
+  ]
+}</code></pre>
+
+    <table>
+      <thead>
+        <tr><th>Field</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>outputRoot</code></td>
+          <td>Output directory for generated files, relative to this config file.</td>
+        </tr>
+        <tr>
+          <td><code>project</code></td>
+          <td>Path to the <code>.csproj</code> file. Required when using <code>nugetPackages</code>.</td>
+        </tr>
+        <tr>
+          <td><code>nugetPackages</code></td>
+          <td>NuGet package IDs to make available in templates. Versions and transitive dependencies are resolved from <code>dotnet restore</code>.</td>
+        </tr>
+        <tr>
+          <td><code>references</code></td>
+          <td>Paths to local <code>.dll</code> assemblies, relative to this config file.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p class="section-label" style="margin-top:3rem;">VS Code Settings</p>
+    <table>
+      <thead>
+        <tr><th>Setting</th><th>Default</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>cstemplate.cliPath</code></td><td><code>cstemplate</code></td><td>Path to the cstemplate CLI executable.</td></tr>
+        <tr><td><code>cstemplate.checkOnSave</code></td><td><code>true</code></td><td>Compile-check templates on save, showing errors as diagnostics.</td></tr>
+        <tr><td><code>cstemplate.showOutputOnRun</code></td><td><code>true</code></td><td>Show output panel when a template is run.</td></tr>
+        <tr><td><code>cstemplate.outputRoot</code></td><td><em>empty</em></td><td>Default output root. Falls back to <code>generated/</code> next to each template.</td></tr>
+        <tr><td><code>cstemplate.templateFilePattern</code></td><td><code>**/*.template.cs</code></td><td>Glob pattern used to identify template files.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="docs">
+  <div class="container">
+    <p class="section-label">Documentation</p>
+    <h2>Reference &amp; guides</h2>
+    <p class="lead">Full API reference, CLI documentation, and configuration guides.</p>
+    <div class="features">
+      <a class="feature" href="docs/api/" style="text-decoration:none;">
+        <div class="feature-icon">📖</div>
+        <h3>API Reference</h3>
+        <p>Complete reference for <code>ITemplate</code>, <code>ITemplateContext</code>,
+        <code>IOutputWriter</code>, and all public types in the
+        <code>CsTemplate.Abstractions</code> and <code>CsTemplate.Core</code> packages.</p>
+      </a>
+      <a class="feature" href="docs/docs/cli.html" style="text-decoration:none;">
+        <div class="feature-icon">⌨️</div>
+        <h3>CLI Reference</h3>
+        <p>Commands, arguments, options, exit codes, and JSON output format for the
+        <code>cstemplate</code> command-line tool.</p>
+      </a>
+      <a class="feature" href="docs/docs/workspace-config.html" style="text-decoration:none;">
+        <div class="feature-icon">🗃️</div>
+        <h3>Workspace Configuration</h3>
+        <p>Full schema reference for <code>cstemplate.config.json</code> — output roots,
+        NuGet package resolution, and local assembly references.</p>
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="links">
+      <a href="https://github.com/HoofMark/cstemplate">GitHub</a>
+      <a href="docs/">Documentation</a>
+      <a href="https://www.nuget.org/packages/HoofMark.CSharpTemplating.Cli">NuGet</a>
+      <a href="https://marketplace.visualstudio.com/items?itemName=HoofMark.cstemplate">VS Code Marketplace</a>
+    </div>
+    <p>Released under the MIT licence · Built by <a href="https://github.com/HoofMark">HoofMark</a></p>
+  </div>
+</footer>
+
+<script>
+  function copyCmd() {
+    const text = document.getElementById('cmd-text').textContent;
+    const btn  = document.getElementById('copy-btn');
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>

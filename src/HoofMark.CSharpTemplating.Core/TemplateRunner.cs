@@ -1,5 +1,7 @@
 using System.Text;
 
+using HoofMark.CSharpTemplating.Abstractions;
+
 namespace HoofMark.CSharpTemplating.Core;
 
 /// <summary>

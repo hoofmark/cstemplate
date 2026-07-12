@@ -4,9 +4,10 @@
       "src": [
         {
           "files": [
-            "../../src/HoofMark.CSharpTemplating.Abstractions/HoofMark.CSharpTemplating.Abstractions.csproj",
-            "../../src/HoofMark.CSharpTemplating.Core/HoofMark.CSharpTemplating.Core.csproj"
-          ]
+            "**/HoofMark.CSharpTemplating.Abstractions/HoofMark.CSharpTemplating.Abstractions.csproj",
+            "**/HoofMark.CSharpTemplating.Core/HoofMark.CSharpTemplating.Core.csproj"
+          ],
+          "src": "../../src"
         }
       ],
       "dest": "api",
@@ -29,14 +30,13 @@
         "files": [
           "articles/**.md",
           "articles/**/toc.yml",
-          "toc.yml",
-          "index.md"
+          "toc.yml"
         ]
       }
     ],
     "resource": [
       {
-        "files": [ "images/**" ]
+        "files": [ "images/**", "index.html" ]
       }
     ],
     "output": "../publish/ref",
