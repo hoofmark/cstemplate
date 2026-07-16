@@ -356,6 +356,8 @@
     .step-num::before { content: counter(step); }
     .step-body h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 0.35rem; }
     .step-body p  { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+    .step-body a { color: var(--muted); text-decoration: none; }
+    .step-body a:hover { color: var(--blue); }
 
     /* ── Config table ── */
     table { width: 100%; border-collapse: collapse; margin: 1.5rem 0; font-size: 0.85rem; }
@@ -527,7 +529,10 @@
         <div class="step-num"></div>
         <div class="step-body">
           <h3>Install the CLI tool and VS Code extension</h3>
-          <p>Install the global dotnet tool, then install the VS Code extension from the marketplace.</p>
+          <p>Install the global dotnet tool, then install the 
+            <code><a href="https://marketplace.visualstudio.com/items?itemName=HoofMark.cstemplate-vscode">VS Code extension</a></code>
+            from the marketplace.
+          </p>
           <pre><code><span class="pun">$</span> dotnet tool install --global HoofMark.CSharpTemplating.Cli</code></pre>
         </div>
       </div>

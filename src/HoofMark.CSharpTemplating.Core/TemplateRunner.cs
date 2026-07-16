@@ -1,5 +1,8 @@
 using System.Text;
 
+// Included to support reference in document comments, but not otherwise used in this file.
+using HoofMark.CSharpTemplating.Abstractions;
+
 namespace HoofMark.CSharpTemplating.Core;
 
 /// <summary>

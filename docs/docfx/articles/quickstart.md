@@ -8,7 +8,7 @@ Template output is simply one or more text files, written to a target location r
 
 ## Prerequisites
 
-- .NET 10 SDK or later
+- .NET 10 runtime
 - VS Code with the [C# Dev Kit](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csdevkit) extension
 
 ## 1. Install the CLI tool
@@ -57,6 +57,8 @@ public class OrderServiceTemplate : ITemplate
 }
 ```
 
+This example uses the built-in [IOutputWriter](../api/HoofMark.CSharpTemplating.Abstractions.IOutputWriter.html) syntax, which enables features to assist with code formatting and indentation. However, any valid C# construct can be used to generate the output string. Refer to the [examples](sample01.md) for a selection of alternative options; choose the approach that best fits your coding style and standards.
+
 ## 5. Add a config file
 
 Place a sibling `.json` file with the same base name to supply config values:
@@ -67,7 +69,7 @@ Place a sibling `.json` file with the same base name to supply config values:
 }
 ```
 
-So for `OrderServiceTemplate.template.cs`, create `OrderServiceTemplate.json`.
+So for `OrderServiceTemplate.template.cs`, create `OrderServiceTemplate.template.json` (or just `OrderServiceTemplate.json` - both formats are supported).
 
 ## 6. Run the template
 

@@ -17,7 +17,7 @@
     <Copyright>Copyright © 2026 HoofMark Software</Copyright>
 
     <!-- Release notes -->
-    <PackageReleaseNotes>See full changelog: https://github.com/hoofmark/cstemplate/CHANGELOG.md</PackageReleaseNotes>
+    <PackageReleaseNotes>See full changelog: https://github.com/hoofmark/cstemplate/blob/main/CHANGELOG.md</PackageReleaseNotes>
 
     <!-- NuGet.org display -->
     <Title>Code Generation using C# Templates</Title>
@@ -28,7 +28,7 @@
       text-based format. 
       HoofMark.CSharpTemplating.Abstractions defines the elements needed to author template (*.template.cs) files.
     </Description>
-    <PackageTags>csharp;C#;templating;template;code generation;codegen;T4</PackageTags>
+    <PackageTags>csharp;C#;templating;template;code generation;codegen;T4;cstemplate</PackageTags>
     
      <!-- Files displayed on the package page -->
     <PackageIcon>hoofmark_small.png</PackageIcon>
