@@ -1,5 +1,11 @@
 # Quickstart
 
+The `cstemplate` extension for VSCode provides functionality that is similar to T4 templates in Visual Studio, but without the need to learn a separate templating language or to edit complex syntax containing a mix of C# code and embedded template instructions. Template files (`*.template.cs`) are written in pure C#, so can use any C# language features (StringBuilder, interpolated strings, etc) to generate and format output. If required, templates can also reference NuGet packages and custom DLLs at design time. Standard C# Dev Kit functionality and intellisense provides full support for editing, compiling and debugging templates, while the extension provides context menu, keyboard shortcuts and command palette options to generate code directly within VSCode. 
+
+Configuration files placed alongside the templates can be used to define template inputs (argument values, `.json` or `.xml` models, database connections, etc). The same template can be reused in multiple projects to generate output specific to each project. 
+
+Template output is simply one or more text files, written to a target location relative to the current project / solution. An individual template can be used to generate a single C# class, produce boilerplate code for data access objects, or to scaffold an entire project.
+
 ## Prerequisites
 
 - .NET 10 SDK or later
@@ -13,8 +19,7 @@ dotnet tool install --global HoofMark.CSharpTemplating.Cli
 
 ## 2. Install the VS Code extension
 
-Install **cstemplate** from the
-[VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=HoofMark.cstemplate).
+Install **cstemplate** from the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=HoofMark.cstemplate-vscode).
 
 ## 3. Add the abstractions package
 

@@ -5,6 +5,55 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>latest</LangVersion>
+
+    <!-- Package metadata -->
+    <IsPackable>true</IsPackable>
+
+    <!-- Package identity -->
+    <PackageId>HoofMark.CSharpTemplating.Core</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>HoofMark</Authors>
+    <Company>HoofMark</Company>
+    <Copyright>Copyright © 2026 HoofMark Software</Copyright>
+
+    <!-- Release notes -->
+    <PackageReleaseNotes>See full changelog: https://github.com/hoofmark/cstemplate/CHANGELOG.md</PackageReleaseNotes>
+
+    <!-- NuGet.org display -->
+    <Title>Code Generation using C# Templates</Title>
+    <Description>
+      A lightweight templating engine for generating code and text files from C# templates, directly within the VSCode editor.
+      Templates are pure C# code, compiled and executed on demand using Roslyn compiler services. There is no need to learn a 
+      custom template language or embed template directives in the code. Output can be C# code, HTML, XML, JSON, or any other 
+      text-based format. 
+      HoofMark.CSharpTemplating.Core provides the core functionality for compiling and running templates.
+    </Description>
+    <PackageTags>csharp;C#;templating;template;code generation;codegen;T4</PackageTags>
+    
+     <!-- Files displayed on the package page -->
+    <PackageIcon>hoofmark_small.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+
+    <!-- License -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+
+    <!-- Project links -->
+    <RepositoryUrl>https://github.com/hoofmark/cstemplate</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <PackageProjectUrl>https://hoofmark.github.io/cstemplate</PackageProjectUrl>   
+
+    <!-- Embed source files not tracked by git (e.g., generated files) -->
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+    <!-- Enable debugging: Use embedded PDB (this increases the compiled assembly size) -->
+    <DebugType>embedded</DebugType>    
+
+    <!-- Deterministic builds improve reproducibility -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>    
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,5 +74,17 @@
     <!--PackageReference Include="Basic.Reference.Assemblies.Net80" Version="1.4.5" /-->
     <PackageReference Include="Basic.Reference.Assemblies.Net100" Version="1.8.4" />
   </ItemGroup>
+
+  <!-- Pack README and icon into the package root -->
+  <ItemGroup>
+    <None Include="../../docs/docfx/images/hoofmark_small.png">
+      <Pack>true</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="README.md">
+      <Pack>true</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>    
 
 </Project>
