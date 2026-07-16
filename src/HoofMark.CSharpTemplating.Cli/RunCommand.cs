@@ -1,6 +1,8 @@
 using System.CommandLine;
+using System.Diagnostics;
 using System.CommandLine.Parsing;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using HoofMark.CSharpTemplating.Core;
 
 namespace HoofMark.CSharpTemplating.Cli;
@@ -98,6 +100,42 @@ internal static class RunCommandFactory
         // Resolve reference paths: local assemblies + NuGet packages via project.assets.json
         var references = ResolveReferences(workspaceConfig, template.DirectoryName!, reporter);
         if (references == null) return; // error already reported
+
+        // --debug: emit PID as JSON so the editor can attach its own debugger,
+        // then spin-wait until a debugger connects. Using a spin-wait rather than
+        // Debugger.Launch() avoids the Windows JIT debugger dialog which would
+        // otherwise offer all registered debuggers (including Visual Studio).
+        if (debug)
+        {
+            var pid = Environment.ProcessId;
+            Console.WriteLine(JsonSerializer.Serialize(new
+            {
+                status  = "waitingForDebugger",
+                pid,
+                message = $"tgen process {pid} waiting for debugger to attach…"
+            }));
+
+            var timeout = TimeSpan.FromSeconds(30);
+            var started = DateTime.UtcNow;
+            while (!Debugger.IsAttached)
+            {
+                if (DateTime.UtcNow - started > timeout)
+                {
+                    Console.Error.WriteLine(
+                        "cstemplate: Timed out waiting for debugger after 30s. Continuing without.");
+                    break;
+                }
+                Thread.Sleep(100);
+            }
+
+            // Enable these lines to pause at a known location to set breakpoints within the tool code before
+            // template code begins executing
+            //if (Debugger.IsAttached)
+            //    Debugger.Break();
+        }
+        // Execution continues — TemplateRunner will call ITemplate.Debug(context)
+        // which breaks inside the template assembly itself, giving the debugger
+        // a chance to bind breakpoints in the user's .template.cs file.
 
         var runnerOptions = new TemplateRunnerOptions
         {

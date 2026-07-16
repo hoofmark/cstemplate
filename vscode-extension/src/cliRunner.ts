@@ -123,15 +123,15 @@ export class CliRunner {
 
       const proc = cp.spawn(this.cliPath, args, { cwd, shell: false });
 
-      // Timeout: if we don't hear waitingForDebugger within 15s, give up
+      // Timeout: if we don't hear waitingForDebugger within 45s, give up
       const timeout = setTimeout(() => {
         if (!debugReadyResolved) {
           proc.kill();
           rejectReady(new Error(
-            'cstemplate did not emit a waitingForDebugger message within 15 seconds.'
+            'cstemplate did not emit a waitingForDebugger message within 45 seconds.'
           ));
         }
-      }, 15_000);
+      }, 45_000);
 
       proc.stdout.on('data', (chunk: Buffer) => {
         stdoutBuffer += chunk.toString();

@@ -33,27 +33,35 @@ internal sealed class TemplateConfig : ITemplateConfig
 
     /// <summary>
     /// Resolves the sibling config path for a given template file path.
+    /// First checks for a sibling JSON file with the same base name (e.g. MyTemplate.template.cs → MyTemplate.template.json).
     /// Strips compound extensions like ".template.cs" down to the base name,
     /// then appends ".json". Falls back to simple extension replacement if
-    /// no known compound extension is matched.
+    /// no known compound extension is matched, or if the resulting path does not exist.
     /// </summary>
     internal static string GetConfigPath(string templateFilePath)
     {
         var directory = Path.GetDirectoryName(templateFilePath) ?? "";
         var fileName  = Path.GetFileName(templateFilePath);
 
+        // First, try to find a sibling JSON file with the same base name (e.g. MyTemplate.template.cs → MyTemplate.template.json)
+        var configPath = Path.Combine(directory, Path.ChangeExtension(fileName, ".json"));
+
         // Strip known compound extensions
-        foreach (var compound in new[] { ".template.cs", ".tmpl.cs" })
-        {
-            if (fileName.EndsWith(compound, StringComparison.OrdinalIgnoreCase))
-            {
-                var baseName = fileName[..^compound.Length];
-                return Path.Combine(directory, baseName + ".json");
-            }
-        }
+		if (!File.Exists(configPath))
+		{
+	        foreach (var compound in new[] { ".template.cs", ".tmpl.cs" })
+	        {
+	            if (fileName.EndsWith(compound, StringComparison.OrdinalIgnoreCase))
+	            {
+	                var baseName = fileName[..^compound.Length];
+	                configPath = Path.Combine(directory, baseName + ".json");
+					break;
+	            }
+	        }
+		}
 
         // Fall back to simple extension replacement (e.g. MyTemplate.cs → MyTemplate.json)
-        return Path.ChangeExtension(templateFilePath, ".json");
+        return configPath;
     }
 
     /// <summary>

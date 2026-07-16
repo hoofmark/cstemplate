@@ -269,7 +269,7 @@ export class TemplateCommands {
       {
         type: 'coreclr',
         request: 'attach',
-        name: `tgen: ${require('path').basename(templatePath)}`,
+        name: `cstemplate: ${require('path').basename(templatePath)}`,
         processId: debugReady.pid,
         justMyCode: false,
         requireExactSource: false,
@@ -289,7 +289,7 @@ export class TemplateCommands {
 
     if (!attached) {
       vscode.window.showErrorMessage(
-        'tgen: Failed to attach debugger. ' +
+        'cstemplate: Failed to attach debugger. ' +
         'Ensure the C# Dev Kit extension is installed and try again.'
       );
       return;
@@ -318,7 +318,7 @@ export class TemplateCommands {
         this.diagnostics.clear(templateUri);
         this.output.reportSuccess(result);
         vscode.window.showInformationMessage(
-          `tgen: Generated ${result.fileCount} file(s) from '${result.templateName}'.`
+          `cstemplate: Generated ${result.fileCount} file(s) from '${result.templateName}'.`
         );
         break;
 
@@ -326,7 +326,7 @@ export class TemplateCommands {
         this.output.reportCompilationFailure(result, templatePath);
         this.diagnostics.publish(templateUri, result.diagnostics ?? []);
         vscode.window.showErrorMessage(
-          `tgen: '${require('path').basename(templatePath)}' failed to compile.`
+          `cstemplate: '${require('path').basename(templatePath)}' failed to compile.`
         );
         break;
 
@@ -334,7 +334,7 @@ export class TemplateCommands {
         this.diagnostics.clear(templateUri);
         this.output.reportExecutionFailure(result, templatePath);
         vscode.window.showErrorMessage(
-          `tgen: '${require('path').basename(templatePath)}' threw an exception. ` +
+          `cstemplate: '${require('path').basename(templatePath)}' threw an exception. ` +
           `See Output panel for details.`
         );
         break;
